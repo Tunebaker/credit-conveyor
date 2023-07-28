@@ -2,8 +2,7 @@ package com.example.conveyor.service;
 
 import com.example.conveyor.dto.LoanApplicationRequestDTO;
 import com.example.conveyor.dto.LoanOfferDTO;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +22,18 @@ public class ConveyorService {
     private static final Double INSURANCE_RATE_DISCOUNT = 0.03;     //couldn't be less than baseRate
     private static final Double SALARY_CLIENT_RATE_DISCOUNT = 0.01; //couldn't be less than baseRate
 
+    @Autowired
+    public ConveyorService(Validator validator) {
+        this.validator = validator;
+    }
+
+    public Validator validator;
 
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
+
+        if (!validator.isRequestValid(loanApplicationRequestDTO)) {
+            throw new RuntimeException("One or more parameters of loan application request are not valid");
+        }
 
         Long applicationId = 0L;
         List<LoanOfferDTO> loanOfferDTOs = new ArrayList<>();
