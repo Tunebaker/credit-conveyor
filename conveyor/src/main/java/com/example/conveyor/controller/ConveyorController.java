@@ -6,6 +6,7 @@ import com.example.conveyor.dto.LoanOfferDTO;
 import com.example.conveyor.dto.ScoringDataDTO;
 import com.example.conveyor.service.ConveyorService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +32,8 @@ public class ConveyorController {
 
     @PostMapping("/calculation")
     @Operation(summary = "скоринг: расчёт параметров кредита")
-    public CreditDTO getCreditDTO(ScoringDataDTO scoringDataDTO) {
-
-        return null;    //TODO вернуть что надо
+    public CreditDTO getCreditDTO(@RequestBody ScoringDataDTO scoringDataDTO) {
+        System.out.println(scoringDataDTO);
+        return conveyorService.composeCreditDTO(scoringDataDTO); 
     }
 }
