@@ -3,7 +3,6 @@ package com.example.conveyor.service;
 import com.example.conveyor.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -59,10 +58,10 @@ public class ConveyorService {
 
         Long applicationId = 0L;
         List<LoanOfferDTO> loanOfferDTOs = new ArrayList<>();
-        loanOfferDTOs.add(prescore(loanApplicationRequestDTO, applicationId++, false, false));
-        loanOfferDTOs.add(prescore(loanApplicationRequestDTO, applicationId++, false, true));
-        loanOfferDTOs.add(prescore(loanApplicationRequestDTO, applicationId++, true, false));
-        loanOfferDTOs.add(prescore(loanApplicationRequestDTO, applicationId++, true, true));
+        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, false, false));
+        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, false, true));
+        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, true, false));
+        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, true, true));
         loanOfferDTOs.sort(Comparator.comparing(LoanOfferDTO::getRate).reversed());
         log.info("Prescoring offer: {}", loanOfferDTOs);
         return loanOfferDTOs;
@@ -78,7 +77,7 @@ public class ConveyorService {
         BigDecimal rate = getScoringRate(scoringDataDTO);
         BigDecimal psk = scoringDataDTO.getAmount().multiply(BigDecimal.ONE.add(rate));
         BigDecimal monthlyPayment = psk.divide(new BigDecimal(scoringDataDTO.getTerm()), MATH_CONTEXT);
-        List<PaymentScheduleElement> paymentSchedule = new ArrayList<>();
+        List<PaymentScheduleElement> paymentSchedule = composePaymentSchedule(rate, psk, scoringDataDTO.getTerm(), LocalDate.now());
 
         CreditDTO creditDTO = CreditDTO.builder()
                 .amount(scoringDataDTO.getAmount())
@@ -94,7 +93,7 @@ public class ConveyorService {
         return creditDTO;
     }
 
-    private LoanOfferDTO prescore(LoanApplicationRequestDTO loanApplicationRequestDTO, Long id, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
+    private LoanOfferDTO getLoadOffer(LoanApplicationRequestDTO loanApplicationRequestDTO, Long id, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
 
         BigDecimal insuranceCost = getInsuranceCost(loanApplicationRequestDTO.getAmount(), isInsuranceEnabled, isSalaryClient);
         BigDecimal totalAmount = loanApplicationRequestDTO.getAmount().add(insuranceCost);
@@ -162,4 +161,22 @@ public class ConveyorService {
         return requestedAmount.multiply(BigDecimal.valueOf(isSalaryClient ? 0 :
                 isInsuranceEnabled ? NO_INSURANCE_COST_FACTOR : 0));
     }
+
+    private List<PaymentScheduleElement> composePaymentSchedule(BigDecimal rate, BigDecimal psk, Integer term, LocalDate firstPaymentDate) {
+        List<PaymentScheduleElement> paymentScheduleElements = new ArrayList<>();
+        for (int i = 0; i < term; i++) {
+            paymentScheduleElements.add(PaymentScheduleElement.builder()
+                    .date(firstPaymentDate.plusMonths(i))
+                    .number(i+1)
+                    .totalPayment(psk.divide(BigDecimal.valueOf(term), new MathContext(3, RoundingMode.HALF_UP)))
+                    .debtPayment(new BigDecimal(0))
+                    .interestPayment(new BigDecimal(0))
+                    .remainingDebt(new BigDecimal(0))
+                    .build());
+
+        }
+        return paymentScheduleElements;
+    }
 }
+
+

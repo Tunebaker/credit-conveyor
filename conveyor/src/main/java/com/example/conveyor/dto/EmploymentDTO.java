@@ -19,13 +19,13 @@ public class EmploymentDTO {
     private EmploymentStatus employmentStatus;
     @Schema(description = "ИНН")
     private String employerINN;
-    @Schema(description = "Заработная плата за месяц")
+    @Schema(description = "Заработная плата за месяц", example = "10000" )
     private BigDecimal salary;
     @Schema(description = "Должность", example = "MIDDLE_MANAGER")
     private Position position;
-    @Schema(description = "Общий стаж работы в месяцах")
+    @Schema(description = "Общий стаж работы в месяцах", example = "120")
     private Integer workExperienceTotal;
-    @Schema(description = "Стаж работы на текущем месте в месяцах")
+    @Schema(description = "Стаж работы на текущем месте в месяцах", example = "24")
     private Integer workExperienceCurrent;
 
     public enum EmploymentStatus{

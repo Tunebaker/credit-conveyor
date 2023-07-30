@@ -16,9 +16,9 @@ import java.time.LocalDate;
 @Builder
 @Schema(description = "Данные для окончательного расчёта параметров кредита")
 public class ScoringDataDTO {
-    @Schema(description = "Сумма кредита с учетом страховки")
+    @Schema(description = "Сумма кредита с учетом страховки", example = "20000")
     private BigDecimal amount;
-    @Schema(description = "Срок кредита в месяцах")
+    @Schema(description = "Срок кредита в месяцах", example = "36")
     private Integer term;
     @Schema(description = "Фамилия")
     private String firstName;
@@ -40,7 +40,7 @@ public class ScoringDataDTO {
     private String passportIssueBranch;
     @Schema(description = "Семейный статус", example = "MARRIED")
     private MaritalStatus maritalStatus;
-    @Schema(description = "Количество иждивенцев", example = "4")
+    @Schema(description = "Количество иждивенцев", example = "1")
     private Integer dependentAmount;
     @Schema(description = "Данные о занятости заемщика")
     private EmploymentDTO employment;

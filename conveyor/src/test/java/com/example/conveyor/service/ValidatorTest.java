@@ -1,12 +1,14 @@
 package com.example.conveyor.service;
 
+import com.example.conveyor.dto.EmploymentDTO;
 import com.example.conveyor.dto.LoanApplicationRequestDTO;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.example.conveyor.dto.ScoringDataDTO;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.example.conveyor.dto.EmploymentDTO.EmploymentStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ValidatorTest {
@@ -27,6 +29,23 @@ class ValidatorTest {
                 .build();
         boolean requestValid = validator.isRequestValid(requestDTO);
         assertTrue(requestValid);
+
+    }
+
+    @Test
+    void isScoringDataValid() {
+        ScoringDataDTO scoringDataDTO = ScoringDataDTO.builder()
+                .birthdate(LocalDate.parse("2000-02-02"))
+                .amount(BigDecimal.valueOf(120000))
+                .employment(EmploymentDTO.builder()
+                        .employmentStatus(EMPLOYED)
+                        .workExperienceCurrent(3)
+                        .workExperienceTotal(12)
+                        .salary(new BigDecimal(10000))
+                        .build())
+                .build();
+        boolean scoringDataValid = validator.isScoringDataValid(scoringDataDTO);
+        assertTrue(scoringDataValid);
 
     }
 }
