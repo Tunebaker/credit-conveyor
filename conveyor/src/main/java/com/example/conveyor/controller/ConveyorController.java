@@ -34,6 +34,6 @@ public class ConveyorController {
     @Operation(summary = "скоринг: расчёт параметров кредита")
     public CreditDTO getCreditDTO(@RequestBody ScoringDataDTO scoringDataDTO) {
         System.out.println(scoringDataDTO);
-        return conveyorService.composeCreditDTO(scoringDataDTO); 
+        return conveyorService.composeCreditDTO(scoringDataDTO);
     }
 }

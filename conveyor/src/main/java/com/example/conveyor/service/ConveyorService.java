@@ -1,6 +1,7 @@
 package com.example.conveyor.service;
 
 import com.example.conveyor.dto.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,12 +24,13 @@ import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.MARRIED;
 
 
 @Service
+@Slf4j
 public class ConveyorService {
 
     @Value(value = "${baserate}")
     public Double baseRate;
+    public Validator validator;
     private static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
-    private static final MathContext MATH_CONTEXT_FOR_CLIENT = new MathContext(10, RoundingMode.HALF_UP);
     private static final Double NO_INSURANCE_COST_FACTOR = 0.005;
     private static final Double INSURANCE_RATE_TERM = -0.03;
     private static final Double SALARY_CLIENT_RATE_TERM = -0.01;
@@ -41,20 +43,18 @@ public class ConveyorService {
     private static final BigDecimal MANY_DEPENDENT_RATE_TERM = BigDecimal.valueOf(0.01);
     private static final Integer MAX_DEPENDENT_AMOUNT = 1;
     private static final BigDecimal NON_BINARY_RATE_TERM = BigDecimal.valueOf(0.03);
-    private static final BigDecimal MIDDLE_AGE_RATE_TERM = BigDecimal.valueOf(-0.03); //couldn't be less than baseRate
-
+    private static final BigDecimal MIDDLE_AGE_RATE_TERM = BigDecimal.valueOf(-0.03);
 
     @Autowired
     public ConveyorService(Validator validator) {
         this.validator = validator;
     }
 
-    public Validator validator;
-
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-
+        log.info("received loanApplicationRequest {}", loanApplicationRequestDTO);
         if (!validator.isRequestValid(loanApplicationRequestDTO)) {
-            throw new RuntimeException("One or more parameters of loan application request are not valid");
+            log.warn("Validation is failed for {}", loanApplicationRequestDTO);
+            throw new IllegalArgumentException("One or more parameters of loan application request are not valid");
         }
 
         Long applicationId = 0L;
@@ -64,11 +64,12 @@ public class ConveyorService {
         loanOfferDTOs.add(prescore(loanApplicationRequestDTO, applicationId++, true, false));
         loanOfferDTOs.add(prescore(loanApplicationRequestDTO, applicationId++, true, true));
         loanOfferDTOs.sort(Comparator.comparing(LoanOfferDTO::getRate).reversed());
+        log.info("Prescoring offer: {}", loanOfferDTOs);
         return loanOfferDTOs;
     }
 
     public CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO) {
-
+        log.info("Received scoring data: {}", scoringDataDTO);
         if (scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(60))
                 || scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(20))
                 || scoringDataDTO.getEmployment().getEmploymentStatus().equals(EmploymentDTO.EmploymentStatus.UNEMPLOYED)
@@ -76,14 +77,15 @@ public class ConveyorService {
                 || scoringDataDTO.getEmployment().getWorkExperienceTotal() < 12
                 || scoringDataDTO.getEmployment().getWorkExperienceCurrent() < 3
         ) {
+            log.warn("Validation is failed for {}", scoringDataDTO);
             throw new RuntimeException("one or more conditions are not fulfilled, credit is denied");
         }
         BigDecimal rate = getScoringRate(scoringDataDTO);
-        BigDecimal psk = scoringDataDTO.getAmount().multiply(BigDecimal.ONE.add(rate), MATH_CONTEXT_FOR_CLIENT);
-        BigDecimal monthlyPayment = psk.divide(new BigDecimal(scoringDataDTO.getTerm()),MATH_CONTEXT_FOR_CLIENT);
+        BigDecimal psk = scoringDataDTO.getAmount().multiply(BigDecimal.ONE.add(rate));
+        BigDecimal monthlyPayment = psk.divide(new BigDecimal(scoringDataDTO.getTerm()), MATH_CONTEXT);
         List<PaymentScheduleElement> paymentSchedule = new ArrayList<>();
 
-        return CreditDTO.builder()
+        CreditDTO creditDTO = CreditDTO.builder()
                 .amount(scoringDataDTO.getAmount())
                 .term(scoringDataDTO.getTerm())
                 .monthlyPayment(monthlyPayment)
@@ -93,6 +95,8 @@ public class ConveyorService {
                 .isSalaryClient(scoringDataDTO.getIsSalaryClient())
                 .paymentSchedule(paymentSchedule)
                 .build();
+        log.info("Credit scoring : {}", creditDTO);
+        return creditDTO;
     }
 
     private LoanOfferDTO prescore(LoanApplicationRequestDTO loanApplicationRequestDTO, Long id, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
@@ -134,13 +138,13 @@ public class ConveyorService {
         if (scoringDataDTO.getEmployment().getPosition().equals(TOP_MANAGER)) {
             rateAdditional = rateAdditional.add(TOP_MANAGER_RATE_TERM);
         }
-        if (scoringDataDTO.getMaritalStatus().equals(MARRIED)){
+        if (scoringDataDTO.getMaritalStatus().equals(MARRIED)) {
             rateAdditional = rateAdditional.add(MARRIED_RATE_TERM);
         }
-        if (scoringDataDTO.getDependentAmount() > MAX_DEPENDENT_AMOUNT){
+        if (scoringDataDTO.getDependentAmount() > MAX_DEPENDENT_AMOUNT) {
             rateAdditional = rateAdditional.add(MANY_DEPENDENT_RATE_TERM);
         }
-        if (scoringDataDTO.getMaritalStatus().equals(DIVORCED)){
+        if (scoringDataDTO.getMaritalStatus().equals(DIVORCED)) {
             rateAdditional = rateAdditional.add(DIVORCED_RATE_TERM);
         }
         if (scoringDataDTO.getGender().equals(NON_BINARY)) {
