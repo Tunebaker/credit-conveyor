@@ -28,8 +28,8 @@ import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.MARRIED;
 public class ConveyorService {
 
     @Value(value = "${baserate}")
-    public Double baseRate;
-    public Validator validator;
+    private Double baseRate;
+    private final Validator validator;
     private static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
     private static final Double NO_INSURANCE_COST_FACTOR = 0.005;
     private static final Double INSURANCE_RATE_TERM = -0.03;
