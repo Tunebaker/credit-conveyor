@@ -1,6 +1,8 @@
 package com.example.conveyor.service;
 
+import com.example.conveyor.dto.EmploymentDTO;
 import com.example.conveyor.dto.LoanApplicationRequestDTO;
+import com.example.conveyor.dto.ScoringDataDTO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,5 +30,16 @@ public class Validator {
                 loanApplicationRequestDTO.getEmail().matches(EMAIL_PATTERN) &&
                 loanApplicationRequestDTO.getPassportSeries().matches(PASSPORT_SERIES_PATTERN) &&
                 loanApplicationRequestDTO.getPassportNumber().matches(PASSPORT_NUMBER_PATTERN);
+    }
+
+    public boolean isScoringDataValid(ScoringDataDTO scoringDataDTO){
+
+        return !(scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(60))
+                || scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(20))
+                || scoringDataDTO.getEmployment().getEmploymentStatus().equals(EmploymentDTO.EmploymentStatus.UNEMPLOYED)
+                || (scoringDataDTO.getEmployment().getSalary()).multiply(new BigDecimal(20)).compareTo(scoringDataDTO.getAmount()) < 0
+                || scoringDataDTO.getEmployment().getWorkExperienceTotal() < 12
+                || scoringDataDTO.getEmployment().getWorkExperienceCurrent() < 3);
+
     }
 }

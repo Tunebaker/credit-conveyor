@@ -27,8 +27,8 @@ import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.MARRIED;
 @Slf4j
 public class ConveyorService {
 
-    @Value(value = "${baserate}")
-    private Double baseRate;
+    //@Value(value = "${baserate}")
+    private Double baseRate = 0.12;
     private final Validator validator;
     private static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
     private static final Double NO_INSURANCE_COST_FACTOR = 0.005;
@@ -70,16 +70,11 @@ public class ConveyorService {
 
     public CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO) {
         log.info("Received scoring data: {}", scoringDataDTO);
-        if (scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(60))
-                || scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(20))
-                || scoringDataDTO.getEmployment().getEmploymentStatus().equals(EmploymentDTO.EmploymentStatus.UNEMPLOYED)
-                || (scoringDataDTO.getEmployment().getSalary()).multiply(new BigDecimal(20)).compareTo(scoringDataDTO.getAmount()) < 0
-                || scoringDataDTO.getEmployment().getWorkExperienceTotal() < 12
-                || scoringDataDTO.getEmployment().getWorkExperienceCurrent() < 3
-        ) {
+        if (!validator.isScoringDataValid(scoringDataDTO)) {
             log.warn("Validation is failed for {}", scoringDataDTO);
-            throw new RuntimeException("one or more conditions are not fulfilled, credit is denied");
+            throw new RuntimeException("One or more conditions are not fulfilled, credit is denied");
         }
+
         BigDecimal rate = getScoringRate(scoringDataDTO);
         BigDecimal psk = scoringDataDTO.getAmount().multiply(BigDecimal.ONE.add(rate));
         BigDecimal monthlyPayment = psk.divide(new BigDecimal(scoringDataDTO.getTerm()), MATH_CONTEXT);
