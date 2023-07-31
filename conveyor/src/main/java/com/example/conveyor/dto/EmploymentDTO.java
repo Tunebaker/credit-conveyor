@@ -15,13 +15,13 @@ import java.math.BigDecimal;
 @Builder
 @Schema(description = "Данные о занятости заемщика")
 public class EmploymentDTO {
-    @Schema(description = "Статус занятости", example = "SELF_EMPLOYED")
+    @Schema(description = "Статус занятости", example = "EMPLOYED")
     private EmploymentStatus employmentStatus;
     @Schema(description = "ИНН")
     private String employerINN;
     @Schema(description = "Заработная плата за месяц", example = "10000" )
     private BigDecimal salary;
-    @Schema(description = "Должность", example = "MIDDLE_MANAGER")
+    @Schema(description = "Должность", example = "ORDINARY_WORKER")
     private Position position;
     @Schema(description = "Общий стаж работы в месяцах", example = "120")
     private Integer workExperienceTotal;

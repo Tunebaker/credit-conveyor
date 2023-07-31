@@ -23,7 +23,7 @@ public class CreditDTO {
     private BigDecimal monthlyPayment;
     @Schema(description = "Годовая ставка кредита в процентах")
     private BigDecimal rate;
-    @Schema(description = "Полная стоимость кредита")
+    @Schema(description = "Полная стоимость кредита в процентах")
     private BigDecimal psk;
     @Schema(description = "Страховка включена")
     private Boolean isInsuranceEnabled;

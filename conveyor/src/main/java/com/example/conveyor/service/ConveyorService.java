@@ -27,9 +27,10 @@ import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.MARRIED;
 public class ConveyorService {
 
     //@Value(value = "${baserate}")
-    private Double baseRate = 0.12;
+    private Double baseRate = 0.3;
     private final Validator validator;
-    private static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
+    private static final MathContext INTERNAL_MATH_CONTEXT = MathContext.DECIMAL64;
+    private static final MathContext OUT_MATH_CONTEXT = new MathContext(2, RoundingMode.HALF_UP);
     private static final Double NO_INSURANCE_COST_FACTOR = 0.005;
     private static final Double INSURANCE_RATE_TERM = -0.03;
     private static final Double SALARY_CLIENT_RATE_TERM = -0.01;
@@ -58,10 +59,10 @@ public class ConveyorService {
 
         Long applicationId = 0L;
         List<LoanOfferDTO> loanOfferDTOs = new ArrayList<>();
-        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, false, false));
-        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, false, true));
-        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, true, false));
-        loanOfferDTOs.add(getLoadOffer(loanApplicationRequestDTO, applicationId++, true, true));
+        loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, false, false));
+        loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, false, true));
+        loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, true, false));
+        loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, true, true));
         loanOfferDTOs.sort(Comparator.comparing(LoanOfferDTO::getRate).reversed());
         log.info("Prescoring offer: {}", loanOfferDTOs);
         return loanOfferDTOs;
@@ -75,15 +76,17 @@ public class ConveyorService {
         }
 
         BigDecimal rate = getScoringRate(scoringDataDTO);
-        BigDecimal psk = scoringDataDTO.getAmount().multiply(BigDecimal.ONE.add(rate));
-        BigDecimal monthlyPayment = psk.divide(new BigDecimal(scoringDataDTO.getTerm()), MATH_CONTEXT);
-        List<PaymentScheduleElement> paymentSchedule = composePaymentSchedule(rate, psk, scoringDataDTO.getTerm(), LocalDate.now());
+        BigDecimal monthlyPayment = calculateMonthlyPayment(rate, scoringDataDTO.getTerm(), scoringDataDTO.getAmount());
+
+        List<PaymentScheduleElement> paymentSchedule = composePaymentSchedule(scoringDataDTO.getAmount(),
+                rate, monthlyPayment, scoringDataDTO.getTerm(), LocalDate.now());
+        BigDecimal psk = calculatePsk(paymentSchedule, scoringDataDTO.getAmount(), scoringDataDTO.getTerm());
 
         CreditDTO creditDTO = CreditDTO.builder()
                 .amount(scoringDataDTO.getAmount())
                 .term(scoringDataDTO.getTerm())
                 .monthlyPayment(monthlyPayment)
-                .rate(rate)
+                .rate(rate.multiply(BigDecimal.valueOf(100)))
                 .psk(psk)
                 .isInsuranceEnabled(scoringDataDTO.getIsInsuranceEnabled())
                 .isSalaryClient(scoringDataDTO.getIsSalaryClient())
@@ -93,16 +96,25 @@ public class ConveyorService {
         return creditDTO;
     }
 
-    private LoanOfferDTO getLoadOffer(LoanApplicationRequestDTO loanApplicationRequestDTO, Long id, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
+    private BigDecimal calculateMonthlyPayment(BigDecimal rate, Integer term, BigDecimal amount) {
+        BigDecimal monthlyRate = rate.divide(new BigDecimal(12), INTERNAL_MATH_CONTEXT);
+        BigDecimal annuityRatio = (BigDecimal.ONE.add(monthlyRate)).pow(term).multiply(monthlyRate)
+                .divide((BigDecimal.ONE.add(monthlyRate)).pow(term).subtract(BigDecimal.ONE), INTERNAL_MATH_CONTEXT);
+        return amount.multiply(annuityRatio).round(INTERNAL_MATH_CONTEXT);
+    }
+
+    private LoanOfferDTO getLoanOffer(LoanApplicationRequestDTO loanApplicationRequestDTO, Long id, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
 
         BigDecimal insuranceCost = getInsuranceCost(loanApplicationRequestDTO.getAmount(), isInsuranceEnabled, isSalaryClient);
         BigDecimal totalAmount = loanApplicationRequestDTO.getAmount().add(insuranceCost);
         BigDecimal rate = getPreScoringRate(isInsuranceEnabled, isSalaryClient);
-        BigDecimal monthlyRate = rate.divide(new BigDecimal(12), MATH_CONTEXT);
+        BigDecimal monthlyPayment = calculateMonthlyPayment(rate, loanApplicationRequestDTO.getTerm(), totalAmount);
 
-        BigDecimal monthlyPayment = totalAmount.multiply(monthlyRate)
-                .divide(BigDecimal.ONE.subtract(BigDecimal.ONE.divide(BigDecimal.ONE.add(monthlyRate), MATH_CONTEXT)
-                        .pow(loanApplicationRequestDTO.getTerm())), 3, RoundingMode.HALF_UP);
+/*        BigDecimal monthlyRate = rate.divide(new BigDecimal(12), INTERNAL_MATH_CONTEXT); //moved
+        Integer term = loanApplicationRequestDTO.getTerm();
+        BigDecimal annuityRatio = (BigDecimal.ONE.add(monthlyRate)).pow(term).multiply(monthlyRate)
+                .divide((BigDecimal.ONE.add(monthlyRate)).pow(term).subtract(BigDecimal.ONE), INTERNAL_MATH_CONTEXT); //moved
+        BigDecimal monthlyPayment = totalAmount.multiply(annuityRatio).round(INTERNAL_MATH_CONTEXT); //moved*/
 
         return LoanOfferDTO.builder()
                 .applicationId(id)
@@ -147,7 +159,7 @@ public class ConveyorService {
                 scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(30))) {
             rateAdditional = rateAdditional.add(MIDDLE_AGE_RATE_TERM);
         }
-        return preScoringRate.add(rateAdditional, MATH_CONTEXT);
+        return preScoringRate.add(rateAdditional, INTERNAL_MATH_CONTEXT);
     }
 
     private BigDecimal getPreScoringRate(Boolean isInsuranceEnabled, Boolean isSalaryClient) {
@@ -162,20 +174,53 @@ public class ConveyorService {
                 isInsuranceEnabled ? NO_INSURANCE_COST_FACTOR : 0));
     }
 
-    private List<PaymentScheduleElement> composePaymentSchedule(BigDecimal rate, BigDecimal psk, Integer term, LocalDate firstPaymentDate) {
+    private List<PaymentScheduleElement> composePaymentSchedule(BigDecimal amount, BigDecimal rate, BigDecimal totalMonthlyPayment,
+                                                                Integer term, LocalDate firstPaymentDate) {
         List<PaymentScheduleElement> paymentScheduleElements = new ArrayList<>();
-        for (int i = 0; i < term; i++) {
-            paymentScheduleElements.add(PaymentScheduleElement.builder()
-                    .date(firstPaymentDate.plusMonths(i))
-                    .number(i+1)
-                    .totalPayment(psk.divide(BigDecimal.valueOf(term), new MathContext(3, RoundingMode.HALF_UP)))
-                    .debtPayment(new BigDecimal(0))
-                    .interestPayment(new BigDecimal(0))
-                    .remainingDebt(new BigDecimal(0))
-                    .build());
+        BigDecimal remainingDebt = amount;
+        LocalDate paymentDate;
+        BigDecimal interestPayment;
+        BigDecimal debtPayment;
 
+        for (int i = 1; i <= term; i++) {
+            paymentDate = firstPaymentDate.plusMonths(i);
+            interestPayment = remainingDebt.multiply(rate).multiply(BigDecimal.valueOf(paymentDate.lengthOfMonth()))
+                    .divide(BigDecimal.valueOf(paymentDate.lengthOfYear()), INTERNAL_MATH_CONTEXT);
+            debtPayment = totalMonthlyPayment.subtract(interestPayment);
+            remainingDebt = remainingDebt.subtract(debtPayment);
+
+            if (i == term) {
+                totalMonthlyPayment = totalMonthlyPayment.add(remainingDebt); // устранение погрешности расчёта последнего платежа
+                remainingDebt = BigDecimal.ZERO;
+            }
+
+            paymentScheduleElements.add(PaymentScheduleElement.builder()
+                    .number(i)
+                    .date(paymentDate)
+                    .totalPayment(totalMonthlyPayment)
+                    .interestPayment(interestPayment)
+                    .debtPayment(totalMonthlyPayment.subtract(interestPayment))
+                    .remainingDebt(remainingDebt)
+                    .build());
         }
         return paymentScheduleElements;
+    }
+
+    private BigDecimal calculatePsk(List<PaymentScheduleElement> paymentSchedule, BigDecimal amount, Integer term) {
+        BigDecimal totalPaymentSum = BigDecimal.ZERO;
+        BigDecimal psk;
+        for (PaymentScheduleElement paymentScheduleElement : paymentSchedule) {
+            totalPaymentSum = paymentScheduleElement.getTotalPayment().add(totalPaymentSum);
+        }
+
+        psk = totalPaymentSum.divide(amount, INTERNAL_MATH_CONTEXT).subtract(BigDecimal.ONE)
+                .divide(BigDecimal.valueOf(term), INTERNAL_MATH_CONTEXT)
+                .multiply(BigDecimal.valueOf(12)).multiply(BigDecimal.valueOf(100));
+        log.debug("----------------------");
+        log.debug("totalPaymentSum = " + totalPaymentSum);
+        log.debug("psk = " + psk);
+        log.debug("----------------------");
+        return psk;
     }
 }
 
