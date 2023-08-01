@@ -6,9 +6,8 @@ import com.example.conveyor.dto.LoanOfferDTO;
 import com.example.conveyor.dto.ScoringDataDTO;
 import com.example.conveyor.service.ConveyorService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,11 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/conveyor")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Tag(name = "контроллер", description = "Методы для расчёта кредита")
 public class ConveyorController {
 
-    ConveyorService conveyorService;
+    private final ConveyorService conveyorService;
 
     @PostMapping("/offers")
     @Operation(summary = "прескоринг: расчёт 4 кредитных предложений")

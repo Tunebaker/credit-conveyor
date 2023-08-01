@@ -1,6 +1,7 @@
 package com.example.conveyor.service;
 
 import com.example.conveyor.dto.*;
+import com.example.conveyor.service.impl.ConveyorServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,13 +21,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ConveyorServiceTest {
+class ConveyorServiceImplTest {
 
     @Mock
     private Validator validator;
 
     @InjectMocks
-    private ConveyorService conveyorService;
+    private ConveyorServiceImpl conveyorServiceImpl;
 
     @Test
     void composeLoanOfferList() {
@@ -42,7 +43,7 @@ class ConveyorServiceTest {
                 .birthdate(LocalDate.parse("2000-01-01"))
                 .build();
         when(validator.isRequestValid(any(LoanApplicationRequestDTO.class))).thenReturn(true);
-        List<LoanOfferDTO> loanOfferDTOs = conveyorService.composeLoanOfferList(requestDTO);
+        List<LoanOfferDTO> loanOfferDTOs = conveyorServiceImpl.composeLoanOfferList(requestDTO);
         assertEquals(4, loanOfferDTOs.size());
         assertEquals(10000, loanOfferDTOs.get(0).getTotalAmount().intValue());
     }
@@ -67,7 +68,7 @@ class ConveyorServiceTest {
                 .maritalStatus(SINGLE)
                 .build();
         when(validator.isScoringDataValid(any(ScoringDataDTO.class))).thenReturn(true);
-        CreditDTO creditDTO = conveyorService.composeCreditDTO(scoringDataDTO);
+        CreditDTO creditDTO = conveyorServiceImpl.composeCreditDTO(scoringDataDTO);
         assertEquals(12, creditDTO.getPaymentSchedule().size());
         assertTrue(creditDTO.getIsInsuranceEnabled());
     }
