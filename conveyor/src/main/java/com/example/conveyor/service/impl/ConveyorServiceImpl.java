@@ -49,10 +49,11 @@ public class ConveyorServiceImpl implements ConveyorService {
     private static final BigDecimal MIDDLE_AGE_RATE_TERM = BigDecimal.valueOf(-0.03);
 
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        log.info("received loanApplicationRequest {}", loanApplicationRequestDTO);
-        if (!validator.isRequestValid(loanApplicationRequestDTO)) {
-            log.warn("Validation is failed for {}", loanApplicationRequestDTO);
-            throw new ScoringException("oops! One or more parameters of loan application request are not valid");
+        log.info("Получена заявка на кредит {}", loanApplicationRequestDTO);
+        String validationMessage = validator.preScore(loanApplicationRequestDTO);
+        if (!validator.preScore(loanApplicationRequestDTO).equals("")) {
+            log.warn("Ошибка валидации: {}", validationMessage);
+            throw new ScoringException("Ошибка валидации: " + validationMessage);
         }
 
         long applicationId = 0L;
@@ -62,15 +63,16 @@ public class ConveyorServiceImpl implements ConveyorService {
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, true, false));
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId, true, true));
         loanOfferDTOs.sort(Comparator.comparing(LoanOfferDTO::getRate).reversed());
-        log.info("Prescoring offer: {}", loanOfferDTOs);
+        log.info("Предложения по кредиту : {}", loanOfferDTOs);
         return loanOfferDTOs;
     }
 
     public CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO) {
         log.info("Received scoring data: {}", scoringDataDTO);
-        if (!validator.isScoringDataValid(scoringDataDTO)) {
-            log.warn("Validation is failed for {}", scoringDataDTO);
-            throw new ScoringException("One or more conditions are not fulfilled, credit is denied");
+        String validationMessage = validator.score(scoringDataDTO);
+        if (!validationMessage.equals("")) {
+            log.warn("Отказ в выдаче кредита. Причина: {}", validationMessage);
+            throw new ScoringException("Отказ в выдаче кредита. Причина: " + validationMessage);
         }
 
         BigDecimal rate = getScoringRate(scoringDataDTO);

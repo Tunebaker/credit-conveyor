@@ -12,10 +12,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.example.conveyor.dto.EmploymentDTO.EmploymentStatus.EMPLOYED;
-import static com.example.conveyor.dto.EmploymentDTO.Position.TOP_MANAGER;
-import static com.example.conveyor.dto.ScoringDataDTO.Gender.MALE;
-import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.SINGLE;
+import static com.example.conveyor.model.EmploymentStatus.EMPLOYED;
+import static com.example.conveyor.model.Gender.MALE;
+import static com.example.conveyor.model.MaritalStatus.SINGLE;
+import static com.example.conveyor.model.Position.TOP_MANAGER;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -42,7 +42,7 @@ class ConveyorServiceImplTest {
                 .amount(new BigDecimal(10000))
                 .birthdate(LocalDate.parse("2000-01-01"))
                 .build();
-        when(validator.isRequestValid(any(LoanApplicationRequestDTO.class))).thenReturn(true);
+        when(validator.preScore(any(LoanApplicationRequestDTO.class))).thenReturn("");
         List<LoanOfferDTO> loanOfferDTOs = conveyorServiceImpl.composeLoanOfferList(requestDTO);
         assertEquals(4, loanOfferDTOs.size());
         assertEquals(10000, loanOfferDTOs.get(0).getTotalAmount().intValue());
@@ -67,7 +67,7 @@ class ConveyorServiceImplTest {
                 .term(12)
                 .maritalStatus(SINGLE)
                 .build();
-        when(validator.isScoringDataValid(any(ScoringDataDTO.class))).thenReturn(true);
+        when(validator.score(any(ScoringDataDTO.class))).thenReturn("");
         CreditDTO creditDTO = conveyorServiceImpl.composeCreditDTO(scoringDataDTO);
         assertEquals(12, creditDTO.getPaymentSchedule().size());
         assertTrue(creditDTO.getIsInsuranceEnabled());
