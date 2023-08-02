@@ -2,7 +2,6 @@ package com.example.conveyor.dto;
 
 import com.example.conveyor.model.EmploymentStatus;
 import com.example.conveyor.model.Position;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +20,7 @@ public class EmploymentDTO {
     private EmploymentStatus employmentStatus;
     @Schema(description = "ИНН")
     private String employerINN;
-    @Schema(description = "Заработная плата за месяц", example = "10000" )
+    @Schema(description = "Заработная плата за месяц", example = "10000")
     private BigDecimal salary;
     @Schema(description = "Должность", example = "ORDINARY_WORKER")
     private Position position;

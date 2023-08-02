@@ -7,7 +7,8 @@ import com.example.conveyor.dto.ScoringDataDTO;
 
 import java.util.List;
 
-public interface ConveyorService {
-     List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO);
+public interface ScoringService {
+    List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO);
+
     CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO);
 }

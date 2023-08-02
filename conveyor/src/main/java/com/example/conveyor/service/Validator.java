@@ -54,13 +54,13 @@ public class Validator {
 
     public String score(ScoringDataDTO scoringDataDTO) {
         StringBuilder errorMessage = new StringBuilder("");
-        if (scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(60))) {
+        if (scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(60))) {
             errorMessage.append("возраст более 60 лет, ");
         }
-        if (scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(20))) {
+        if (scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(20))) {
             errorMessage.append("возраст менее 20 лет, ");
         }
-        if ((scoringDataDTO.getEmployment().getSalary()).multiply(new BigDecimal(20)).compareTo(scoringDataDTO.getAmount()) >= 0) {
+        if (((scoringDataDTO.getEmployment().getSalary()).multiply(new BigDecimal(20))).compareTo(scoringDataDTO.getAmount()) < 0) {
             errorMessage.append("сумма займа больше 20 зарплат, ");
         }
         if (scoringDataDTO.getEmployment().getEmploymentStatus().equals(UNEMPLOYED)) {

@@ -2,7 +2,7 @@ package com.example.conveyor.service.impl;
 
 import com.example.conveyor.dto.*;
 import com.example.conveyor.exception.ScoringException;
-import com.example.conveyor.service.ConveyorService;
+import com.example.conveyor.service.ScoringService;
 import com.example.conveyor.service.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import static com.example.conveyor.model.Position.TOP_MANAGER;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ConveyorServiceImpl implements ConveyorService {
+public class ScoringServiceImpl implements ScoringService {
 
     private static final Double BASE_RATE = 0.3;
     private final Validator validator;
@@ -68,7 +68,7 @@ public class ConveyorServiceImpl implements ConveyorService {
     }
 
     public CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO) {
-        log.info("Received scoring data: {}", scoringDataDTO);
+        log.info("Клиентом выбрано предложение: {}", scoringDataDTO);
         String validationMessage = validator.score(scoringDataDTO);
         if (!validationMessage.equals("")) {
             log.warn("Отказ в выдаче кредита. Причина: {}", validationMessage);
@@ -80,7 +80,7 @@ public class ConveyorServiceImpl implements ConveyorService {
 
         List<PaymentScheduleElement> paymentSchedule = composePaymentSchedule(scoringDataDTO.getAmount(),
                 rate, monthlyPayment, scoringDataDTO.getTerm(), LocalDate.now());
-        BigDecimal psk = calculatePsk(paymentSchedule, scoringDataDTO.getAmount(), scoringDataDTO.getTerm());
+        BigDecimal psk = calculatePsk(paymentSchedule, scoringDataDTO.getAmount());
 
         CreditDTO creditDTO = CreditDTO.builder()
                 .amount(scoringDataDTO.getAmount())
@@ -92,24 +92,28 @@ public class ConveyorServiceImpl implements ConveyorService {
                 .isSalaryClient(scoringDataDTO.getIsSalaryClient())
                 .paymentSchedule(paymentSchedule)
                 .build();
-        log.info("Credit scoring : {}", creditDTO);
+        log.info("Одобрен кредит : {}", creditDTO);
         return creditDTO;
     }
 
     private BigDecimal calculateMonthlyPayment(BigDecimal rate, Integer term, BigDecimal amount) {
+        log.info("Расчёт месячного платежа по ставке {}, сроку {} месяцев и сумме кредита {} ", rate, term, amount);
         BigDecimal monthlyRate = rate.divide(new BigDecimal(12), INTERNAL_MATH_CONTEXT);
         BigDecimal annuityRatio = (BigDecimal.ONE.add(monthlyRate)).pow(term).multiply(monthlyRate)
                 .divide((BigDecimal.ONE.add(monthlyRate)).pow(term).subtract(BigDecimal.ONE), INTERNAL_MATH_CONTEXT);
-        return amount.multiply(annuityRatio).round(INTERNAL_MATH_CONTEXT);
+        BigDecimal monthlyPayment = amount.multiply(annuityRatio).round(INTERNAL_MATH_CONTEXT);
+        log.info("Рассчитан ежемесячный платёж: {}", monthlyPayment);
+        return monthlyPayment;
     }
 
     private LoanOfferDTO getLoanOffer(LoanApplicationRequestDTO loanApplicationRequestDTO, Long id, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
-
+        log.info("Расчёт кредитного предложения №{} для параметров: заявка {}, страховка {}, зарплатный клиент {}",
+                id, loanApplicationRequestDTO, isInsuranceEnabled, isSalaryClient);
         BigDecimal insuranceCost = getInsuranceCost(loanApplicationRequestDTO.getAmount(), isInsuranceEnabled, isSalaryClient);
         BigDecimal totalAmount = loanApplicationRequestDTO.getAmount().add(insuranceCost);
         BigDecimal rate = getPreScoringRate(isInsuranceEnabled, isSalaryClient);
         BigDecimal monthlyPayment = calculateMonthlyPayment(rate, loanApplicationRequestDTO.getTerm(), totalAmount);
-        return LoanOfferDTO.builder()
+        LoanOfferDTO loanOfferDTO = LoanOfferDTO.builder()
                 .applicationId(id)
                 .requestedAmount(loanApplicationRequestDTO.getAmount())
                 .totalAmount(totalAmount)
@@ -119,9 +123,12 @@ public class ConveyorServiceImpl implements ConveyorService {
                 .isInsuranceEnabled(isInsuranceEnabled)
                 .isSalaryClient(isSalaryClient)
                 .build();
+        log.info("Кредитное предложение №{}: {}", loanOfferDTO.getApplicationId(), loanOfferDTO);
+        return loanOfferDTO;
     }
 
     private BigDecimal getScoringRate(ScoringDataDTO scoringDataDTO) {
+        log.info("Вычисляется кредитная ставка для параметров: {}", scoringDataDTO);
         BigDecimal rateAdditional = BigDecimal.valueOf(0);
         BigDecimal preScoringRate = getPreScoringRate(scoringDataDTO.getIsInsuranceEnabled(), scoringDataDTO.getIsSalaryClient());
 
@@ -152,10 +159,13 @@ public class ConveyorServiceImpl implements ConveyorService {
                 scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(30))) {
             rateAdditional = rateAdditional.add(MIDDLE_AGE_RATE_TERM);
         }
-        return preScoringRate.add(rateAdditional, INTERNAL_MATH_CONTEXT);
+        BigDecimal rate = preScoringRate.add(rateAdditional, INTERNAL_MATH_CONTEXT);
+        log.info("Окончательное значание кредитной ставки: {}", rate );
+        return rate;
     }
 
     private BigDecimal getPreScoringRate(Boolean isInsuranceEnabled, Boolean isSalaryClient) {
+        log.info("Рсчет коэффициента ставки для значений: страховка {}, зарплатный клиент {}", isInsuranceEnabled, isSalaryClient);
         double rateCorrection = 0;
         rateCorrection = (isInsuranceEnabled ? rateCorrection + INSURANCE_RATE_TERM : 0) +
                 (isSalaryClient ? rateCorrection + SALARY_CLIENT_RATE_TERM : 0);
@@ -163,12 +173,17 @@ public class ConveyorServiceImpl implements ConveyorService {
     }
 
     private BigDecimal getInsuranceCost(BigDecimal requestedAmount, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
-        return requestedAmount.multiply(BigDecimal.valueOf(isSalaryClient ? 0 :
+        log.info("Расчет стоимости страховки: сумма {}, есть страховка {}, зарплатный клиент {}", requestedAmount, isInsuranceEnabled, isSalaryClient);
+        BigDecimal insuranceCost = requestedAmount.multiply(BigDecimal.valueOf(isSalaryClient ? 0 :
                 isInsuranceEnabled ? NO_INSURANCE_COST_FACTOR : 0));
+        log.info("Стоимость страховки: {}", insuranceCost);
+        return insuranceCost;
     }
 
     private List<PaymentScheduleElement> composePaymentSchedule(BigDecimal amount, BigDecimal rate, BigDecimal totalMonthlyPayment,
-                                                                Integer term, LocalDate firstPaymentDate) {
+                                                                Integer term, LocalDate gettingCreditDate) {
+        log.info("Формирование графика платежей для данных: сумма {}, ставка {}, месячный платеж {}," +
+                "срок {} месяцев, дата получения кредита {}", amount, rate, totalMonthlyPayment, term, gettingCreditDate);
         List<PaymentScheduleElement> paymentScheduleElements = new ArrayList<>();
         BigDecimal remainingDebt = amount;
         LocalDate paymentDate;
@@ -176,7 +191,7 @@ public class ConveyorServiceImpl implements ConveyorService {
         BigDecimal debtPayment;
 
         for (int i = 1; i <= term; i++) {
-            paymentDate = firstPaymentDate.plusMonths(i);
+            paymentDate = gettingCreditDate.plusMonths(i);
             interestPayment = remainingDebt.multiply(rate).multiply(BigDecimal.valueOf(paymentDate.lengthOfMonth()))
                     .divide(BigDecimal.valueOf(paymentDate.lengthOfYear()), INTERNAL_MATH_CONTEXT);
             debtPayment = totalMonthlyPayment.subtract(interestPayment);
@@ -195,11 +210,13 @@ public class ConveyorServiceImpl implements ConveyorService {
                     .debtPayment(totalMonthlyPayment.subtract(interestPayment))
                     .remainingDebt(remainingDebt)
                     .build());
+            log.info("График платежей: {}", paymentScheduleElements);
         }
         return paymentScheduleElements;
     }
 
-    private BigDecimal calculatePsk(List<PaymentScheduleElement> paymentSchedule, BigDecimal amount, Integer term) {
+    private BigDecimal calculatePsk(List<PaymentScheduleElement> paymentSchedule, BigDecimal amount) {
+        log.info("Расчет полной стоимости кредита по графику платежей {}, сумме {}", paymentSchedule, amount);
         BigDecimal totalPaymentSum = BigDecimal.ZERO;
         BigDecimal psk;
         for (PaymentScheduleElement paymentScheduleElement : paymentSchedule) {
@@ -207,8 +224,9 @@ public class ConveyorServiceImpl implements ConveyorService {
         }
 
         psk = totalPaymentSum.divide(amount, INTERNAL_MATH_CONTEXT).subtract(BigDecimal.ONE)
-                .divide(BigDecimal.valueOf(term), INTERNAL_MATH_CONTEXT)
+                .divide(BigDecimal.valueOf(paymentSchedule.size()), INTERNAL_MATH_CONTEXT)
                 .multiply(BigDecimal.valueOf(12)).multiply(BigDecimal.valueOf(100));
+        log.info("Полная стоимость кредита: {}", psk );
         return psk;
     }
 }

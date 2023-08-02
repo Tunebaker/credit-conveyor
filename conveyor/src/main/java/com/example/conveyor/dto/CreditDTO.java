@@ -1,6 +1,5 @@
 package com.example.conveyor.dto;
 
-import com.example.conveyor.dto.PaymentScheduleElement;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -5,7 +5,7 @@ import com.example.conveyor.dto.LoanApplicationRequestDTO;
 import com.example.conveyor.dto.LoanOfferDTO;
 import com.example.conveyor.dto.ScoringDataDTO;
 import com.example.conveyor.exception.ScoringException;
-import com.example.conveyor.service.ConveyorService;
+import com.example.conveyor.service.ScoringService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +22,18 @@ import java.util.List;
 @Tag(name = "контроллер", description = "Методы для расчёта кредита")
 public class ConveyorController {
 
-    private final ConveyorService conveyorService;
+    private final ScoringService scoringService;
 
     @PostMapping("/offers")
     @Operation(summary = "прескоринг: расчёт 4 кредитных предложений")
     public ResponseEntity<List<LoanOfferDTO>> getLoanOfferDTOs(@RequestBody LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        return ResponseEntity.ok(conveyorService.composeLoanOfferList(loanApplicationRequestDTO));
+        return ResponseEntity.ok(scoringService.composeLoanOfferList(loanApplicationRequestDTO));
     }
 
     @PostMapping("/calculation")
     @Operation(summary = "скоринг: расчёт параметров кредита")
     public ResponseEntity<CreditDTO> getCreditDTO(@RequestBody ScoringDataDTO scoringDataDTO) {
-        return ResponseEntity.ok(conveyorService.composeCreditDTO(scoringDataDTO));
+        return ResponseEntity.ok(scoringService.composeCreditDTO(scoringDataDTO));
     }
 
     @ExceptionHandler(ScoringException.class)

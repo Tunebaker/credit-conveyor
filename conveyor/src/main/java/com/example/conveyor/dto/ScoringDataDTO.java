@@ -2,7 +2,6 @@ package com.example.conveyor.dto;
 
 import com.example.conveyor.model.Gender;
 import com.example.conveyor.model.MaritalStatus;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
