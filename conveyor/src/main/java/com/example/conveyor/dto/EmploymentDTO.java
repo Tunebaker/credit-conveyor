@@ -1,5 +1,7 @@
 package com.example.conveyor.dto;
 
+import com.example.conveyor.model.EmploymentStatus;
+import com.example.conveyor.model.Position;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -27,19 +29,6 @@ public class EmploymentDTO {
     private Integer workExperienceTotal;
     @Schema(description = "Стаж работы на текущем месте в месяцах", example = "24")
     private Integer workExperienceCurrent;
-
-    public enum EmploymentStatus{
-        EMPLOYED,
-        UNEMPLOYED,
-        SELF_EMPLOYED,
-        BUSINESS_OWNER
-    }
-
-    public enum Position{
-        ORDINARY_WORKER,
-        MIDDLE_MANAGER,
-        TOP_MANAGER
-    }
 }
 
 

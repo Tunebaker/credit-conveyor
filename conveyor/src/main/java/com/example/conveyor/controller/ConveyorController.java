@@ -4,14 +4,15 @@ import com.example.conveyor.dto.CreditDTO;
 import com.example.conveyor.dto.LoanApplicationRequestDTO;
 import com.example.conveyor.dto.LoanOfferDTO;
 import com.example.conveyor.dto.ScoringDataDTO;
+import com.example.conveyor.exception.ScoringException;
 import com.example.conveyor.service.ConveyorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springdoc.api.ErrorMessage;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,13 +26,20 @@ public class ConveyorController {
 
     @PostMapping("/offers")
     @Operation(summary = "прескоринг: расчёт 4 кредитных предложений")
-    public List<LoanOfferDTO> getLoanOfferDTOs(@RequestBody LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        return conveyorService.composeLoanOfferList(loanApplicationRequestDTO);
+    public ResponseEntity<List<LoanOfferDTO>> getLoanOfferDTOs(@RequestBody LoanApplicationRequestDTO loanApplicationRequestDTO) {
+        return ResponseEntity.ok(conveyorService.composeLoanOfferList(loanApplicationRequestDTO));
     }
 
     @PostMapping("/calculation")
     @Operation(summary = "скоринг: расчёт параметров кредита")
-    public CreditDTO getCreditDTO(@RequestBody ScoringDataDTO scoringDataDTO) {
-        return conveyorService.composeCreditDTO(scoringDataDTO);
+    public ResponseEntity<CreditDTO> getCreditDTO(@RequestBody ScoringDataDTO scoringDataDTO) {
+        return ResponseEntity.ok(conveyorService.composeCreditDTO(scoringDataDTO));
+    }
+
+    @ExceptionHandler(ScoringException.class)
+    public ResponseEntity<ErrorMessage> handleException(ScoringException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
     }
 }

@@ -1,5 +1,7 @@
 package com.example.conveyor.dto;
 
+import com.example.conveyor.model.Gender;
+import com.example.conveyor.model.MaritalStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -51,16 +53,4 @@ public class ScoringDataDTO {
     @Schema(description = "Зарплатный клиент")
     private Boolean isSalaryClient;
 
-    @Schema(description = "Пол")
-    public enum Gender {
-        MALE,
-        FEMALE,
-        NON_BINARY
-    }
-    @Schema(description = "Семейный статус")
-    public enum MaritalStatus {
-        SINGLE,
-        MARRIED,
-        DIVORCED
-    }
 }

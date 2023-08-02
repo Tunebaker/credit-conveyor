@@ -1,6 +1,7 @@
 package com.example.conveyor.service.impl;
 
 import com.example.conveyor.dto.*;
+import com.example.conveyor.exception.ScoringException;
 import com.example.conveyor.service.ConveyorService;
 import com.example.conveyor.service.Validator;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +16,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.example.conveyor.dto.EmploymentDTO.EmploymentStatus.BUSINESS_OWNER;
-import static com.example.conveyor.dto.EmploymentDTO.EmploymentStatus.SELF_EMPLOYED;
-import static com.example.conveyor.dto.EmploymentDTO.Position.MIDDLE_MANAGER;
-import static com.example.conveyor.dto.EmploymentDTO.Position.TOP_MANAGER;
-import static com.example.conveyor.dto.ScoringDataDTO.Gender.NON_BINARY;
-import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.DIVORCED;
-import static com.example.conveyor.dto.ScoringDataDTO.MaritalStatus.MARRIED;
+import static com.example.conveyor.model.EmploymentStatus.BUSINESS_OWNER;
+import static com.example.conveyor.model.EmploymentStatus.SELF_EMPLOYED;
+import static com.example.conveyor.model.Gender.NON_BINARY;
+import static com.example.conveyor.model.MaritalStatus.DIVORCED;
+import static com.example.conveyor.model.MaritalStatus.MARRIED;
+import static com.example.conveyor.model.Position.MIDDLE_MANAGER;
+import static com.example.conveyor.model.Position.TOP_MANAGER;
 
 
 @Service
@@ -51,7 +52,7 @@ public class ConveyorServiceImpl implements ConveyorService {
         log.info("received loanApplicationRequest {}", loanApplicationRequestDTO);
         if (!validator.isRequestValid(loanApplicationRequestDTO)) {
             log.warn("Validation is failed for {}", loanApplicationRequestDTO);
-            throw new IllegalArgumentException("One or more parameters of loan application request are not valid");
+            throw new ScoringException("oops! One or more parameters of loan application request are not valid");
         }
 
         long applicationId = 0L;
@@ -59,7 +60,7 @@ public class ConveyorServiceImpl implements ConveyorService {
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, false, false));
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, false, true));
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, true, false));
-        loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, true, true));
+        loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId, true, true));
         loanOfferDTOs.sort(Comparator.comparing(LoanOfferDTO::getRate).reversed());
         log.info("Prescoring offer: {}", loanOfferDTOs);
         return loanOfferDTOs;
@@ -69,7 +70,7 @@ public class ConveyorServiceImpl implements ConveyorService {
         log.info("Received scoring data: {}", scoringDataDTO);
         if (!validator.isScoringDataValid(scoringDataDTO)) {
             log.warn("Validation is failed for {}", scoringDataDTO);
-            throw new RuntimeException("One or more conditions are not fulfilled, credit is denied");
+            throw new ScoringException("One or more conditions are not fulfilled, credit is denied");
         }
 
         BigDecimal rate = getScoringRate(scoringDataDTO);

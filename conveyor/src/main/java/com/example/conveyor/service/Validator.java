@@ -1,12 +1,13 @@
 package com.example.conveyor.service;
 
-import com.example.conveyor.dto.EmploymentDTO;
 import com.example.conveyor.dto.LoanApplicationRequestDTO;
 import com.example.conveyor.dto.ScoringDataDTO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import static com.example.conveyor.model.EmploymentStatus.UNEMPLOYED;
 
 @Service
 public class Validator {
@@ -36,7 +37,7 @@ public class Validator {
 
         return !(scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(60))
                 || scoringDataDTO.getBirthdate().isAfter(LocalDate.now().minusYears(20))
-                || scoringDataDTO.getEmployment().getEmploymentStatus().equals(EmploymentDTO.EmploymentStatus.UNEMPLOYED)
+                || scoringDataDTO.getEmployment().getEmploymentStatus().equals(UNEMPLOYED)
                 || (scoringDataDTO.getEmployment().getSalary()).multiply(new BigDecimal(20)).compareTo(scoringDataDTO.getAmount()) < 0
                 || scoringDataDTO.getEmployment().getWorkExperienceTotal() < 12
                 || scoringDataDTO.getEmployment().getWorkExperienceCurrent() < 3);
