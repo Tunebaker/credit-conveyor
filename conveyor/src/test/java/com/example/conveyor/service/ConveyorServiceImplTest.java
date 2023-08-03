@@ -1,6 +1,6 @@
 package com.example.conveyor.service;
 
-import com.example.conveyor.dto.*;
+import com.example.conveyor.model.*;
 import com.example.conveyor.service.impl.ConveyorServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,17 +12,17 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.example.conveyor.model.EmploymentStatus.EMPLOYED;
-import static com.example.conveyor.model.Gender.MALE;
-import static com.example.conveyor.model.MaritalStatus.SINGLE;
-import static com.example.conveyor.model.Position.TOP_MANAGER;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.EMPLOYED;
+import static com.example.conveyor.model.EmploymentDTO.PositionEnum.TOP_MANAGER;
+import static com.example.conveyor.model.ScoringDataDTO.GenderEnum.MALE;
+import static com.example.conveyor.model.ScoringDataDTO.MaritalStatusEnum.SINGLE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ConveyorServiceImplTest {
-
     @Mock
     private Validator validator;
 

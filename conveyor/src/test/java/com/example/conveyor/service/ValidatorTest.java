@@ -1,21 +1,21 @@
 package com.example.conveyor.service;
 
-import com.example.conveyor.dto.EmploymentDTO;
-import com.example.conveyor.dto.LoanApplicationRequestDTO;
-import com.example.conveyor.dto.ScoringDataDTO;
+import com.example.conveyor.model.EmploymentDTO;
+import com.example.conveyor.model.LoanApplicationRequestDTO;
+import com.example.conveyor.model.ScoringDataDTO;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static com.example.conveyor.dto.EmploymentDTO.EmploymentStatus.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.EMPLOYED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ValidatorTest {
     Validator validator = new Validator();
 
     @Test
-    void isRequestValid() {
+    void preScore() {
         LoanApplicationRequestDTO requestDTO = LoanApplicationRequestDTO.builder()
                 .birthdate(LocalDate.parse("2000-02-02"))
                 .amount(BigDecimal.valueOf(10000))
@@ -27,13 +27,13 @@ class ValidatorTest {
                 .passportSeries("1234")
                 .term(6)
                 .build();
-        boolean requestValid = validator.isRequestValid(requestDTO);
-        assertTrue(requestValid);
+        String requestValid = validator.preScore(requestDTO);
+        assertEquals("", requestValid);
 
     }
 
     @Test
-    void isScoringDataValid() {
+    void score() {
         ScoringDataDTO scoringDataDTO = ScoringDataDTO.builder()
                 .birthdate(LocalDate.parse("2000-02-02"))
                 .amount(BigDecimal.valueOf(120000))
@@ -44,8 +44,8 @@ class ValidatorTest {
                         .salary(new BigDecimal(10000))
                         .build())
                 .build();
-        boolean scoringDataValid = validator.isScoringDataValid(scoringDataDTO);
-        assertTrue(scoringDataValid);
+        String scoringDataValid = validator.score(scoringDataDTO);
+        assertEquals("", scoringDataValid);
 
     }
 }

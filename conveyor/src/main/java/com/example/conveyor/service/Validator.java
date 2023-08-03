@@ -1,13 +1,14 @@
 package com.example.conveyor.service;
 
-import com.example.conveyor.dto.LoanApplicationRequestDTO;
-import com.example.conveyor.dto.ScoringDataDTO;
+import com.example.conveyor.model.LoanApplicationRequestDTO;
+import com.example.conveyor.model.ScoringDataDTO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static com.example.conveyor.model.EmploymentStatus.UNEMPLOYED;
+import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.UNEMPLOYED;
+
 
 @Service
 public class Validator {

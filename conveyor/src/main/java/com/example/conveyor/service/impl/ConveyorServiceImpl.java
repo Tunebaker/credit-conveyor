@@ -1,8 +1,8 @@
 package com.example.conveyor.service.impl;
 
-import com.example.conveyor.dto.*;
 import com.example.conveyor.exception.ScoringException;
-import com.example.conveyor.service.ScoringService;
+import com.example.conveyor.model.*;
+import com.example.conveyor.service.ConveyorService;
 import com.example.conveyor.service.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +16,23 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.example.conveyor.model.EmploymentStatus.BUSINESS_OWNER;
-import static com.example.conveyor.model.EmploymentStatus.SELF_EMPLOYED;
-import static com.example.conveyor.model.Gender.NON_BINARY;
-import static com.example.conveyor.model.MaritalStatus.DIVORCED;
-import static com.example.conveyor.model.MaritalStatus.MARRIED;
-import static com.example.conveyor.model.Position.MIDDLE_MANAGER;
-import static com.example.conveyor.model.Position.TOP_MANAGER;
-
+import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.BUSINESS_OWNER;
+import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.SELF_EMPLOYED;
+import static com.example.conveyor.model.EmploymentDTO.PositionEnum.MIDDLE_MANAGER;
+import static com.example.conveyor.model.EmploymentDTO.PositionEnum.TOP_MANAGER;
+import static com.example.conveyor.model.ScoringDataDTO.GenderEnum.NON_BINARY;
+import static com.example.conveyor.model.ScoringDataDTO.MaritalStatusEnum.DIVORCED;
+import static com.example.conveyor.model.ScoringDataDTO.MaritalStatusEnum.MARRIED;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ScoringServiceImpl implements ScoringService {
+public class ConveyorServiceImpl implements ConveyorService {
+
+    private final Validator validator;
 
     private static final Double BASE_RATE = 0.3;
-    private final Validator validator;
     private static final MathContext INTERNAL_MATH_CONTEXT = MathContext.DECIMAL64;
-    private static final MathContext OUT_MATH_CONTEXT = new MathContext(2, RoundingMode.HALF_UP);
     private static final Double NO_INSURANCE_COST_FACTOR = 0.005;
     private static final Double INSURANCE_RATE_TERM = -0.03;
     private static final Double SALARY_CLIENT_RATE_TERM = -0.01;
@@ -51,7 +50,7 @@ public class ScoringServiceImpl implements ScoringService {
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         log.info("Получена заявка на кредит {}", loanApplicationRequestDTO);
         String validationMessage = validator.preScore(loanApplicationRequestDTO);
-        if (!validator.preScore(loanApplicationRequestDTO).equals("")) {
+        if (!validationMessage.equals("")) {
             log.warn("Ошибка валидации: {}", validationMessage);
             throw new ScoringException("Ошибка валидации: " + validationMessage);
         }
@@ -160,16 +159,18 @@ public class ScoringServiceImpl implements ScoringService {
             rateAdditional = rateAdditional.add(MIDDLE_AGE_RATE_TERM);
         }
         BigDecimal rate = preScoringRate.add(rateAdditional, INTERNAL_MATH_CONTEXT);
-        log.info("Окончательное значание кредитной ставки: {}", rate );
+        log.info("Окончательное значание кредитной ставки: {}", rate);
         return rate;
     }
 
     private BigDecimal getPreScoringRate(Boolean isInsuranceEnabled, Boolean isSalaryClient) {
-        log.info("Рсчет коэффициента ставки для значений: страховка {}, зарплатный клиент {}", isInsuranceEnabled, isSalaryClient);
+        log.info("Предварительный расчет ставки для значений: страховка {}, зарплатный клиент {}", isInsuranceEnabled, isSalaryClient);
         double rateCorrection = 0;
         rateCorrection = (isInsuranceEnabled ? rateCorrection + INSURANCE_RATE_TERM : 0) +
                 (isSalaryClient ? rateCorrection + SALARY_CLIENT_RATE_TERM : 0);
-        return BigDecimal.valueOf(BASE_RATE + rateCorrection).round(new MathContext(3, RoundingMode.HALF_UP));
+        BigDecimal rate = BigDecimal.valueOf(BASE_RATE + rateCorrection).round(new MathContext(3, RoundingMode.HALF_UP));
+        log.info("Предварительная ставка: {}", rate);
+        return rate;
     }
 
     private BigDecimal getInsuranceCost(BigDecimal requestedAmount, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
@@ -226,7 +227,7 @@ public class ScoringServiceImpl implements ScoringService {
         psk = totalPaymentSum.divide(amount, INTERNAL_MATH_CONTEXT).subtract(BigDecimal.ONE)
                 .divide(BigDecimal.valueOf(paymentSchedule.size()), INTERNAL_MATH_CONTEXT)
                 .multiply(BigDecimal.valueOf(12)).multiply(BigDecimal.valueOf(100));
-        log.info("Полная стоимость кредита: {}", psk );
+        log.info("Полная стоимость кредита: {}", psk);
         return psk;
     }
 }
