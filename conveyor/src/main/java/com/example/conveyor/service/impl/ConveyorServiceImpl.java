@@ -51,7 +51,7 @@ public class ConveyorServiceImpl implements ConveyorService {
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         log.info("Получена заявка на кредит {}", loanApplicationRequestDTO);
         Map<String, String> validationErrors = scoringService.preScore(loanApplicationRequestDTO);
-        if (validationErrors.size() != 0){
+        if (validationErrors.size() != 0) {
             log.warn("Ошибка валидации: {}", validationErrors);
             throw new ScoringException("Ошибка валидации: " + validationErrors);
         }
@@ -160,7 +160,7 @@ public class ConveyorServiceImpl implements ConveyorService {
             rateAdditional = rateAdditional.add(MIDDLE_AGE_RATE_TERM);
         }
         BigDecimal rate = preScoringRate.add(rateAdditional, INTERNAL_MATH_CONTEXT);
-        log.info("Окончательное значание кредитной ставки: {}", rate);
+        log.info("Окончательное значение кредитной ставки: {}", rate);
         return rate;
     }
 

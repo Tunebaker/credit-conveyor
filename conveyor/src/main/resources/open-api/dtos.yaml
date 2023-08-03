@@ -5,7 +5,33 @@ info:
   version: 1.0.11
 servers:
   - url: https://localhost:8080/
-paths: { }
+paths: {}
+
+#  /conveyor:
+#    post:
+#      tags:
+#        - Контроллер микросервиса Конвейер
+#      summary: прескоринг расчёт 4 кредитных предложений
+#      description: предварительный расчёт 4 кредитных предложений
+#      requestBody:
+#        description: предварительный расчёт 4 кредитных предложений
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/LoanApplicationRequestDTO'
+#      responses:
+#        '200':
+#          description: Successful operation
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  $ref: '#/components/schemas/LoanOfferDTO'
+#        '400':
+#          description: Invalid input
+#
+
 
 components:
   schemas:
