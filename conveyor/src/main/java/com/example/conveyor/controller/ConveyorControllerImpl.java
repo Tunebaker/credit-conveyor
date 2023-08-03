@@ -1,5 +1,6 @@
 package com.example.conveyor.controller;
 
+import com.example.conveyor.api.ConveyorApi;
 import com.example.conveyor.model.CreditDTO;
 import com.example.conveyor.model.LoanApplicationRequestDTO;
 import com.example.conveyor.model.LoanOfferDTO;
@@ -12,27 +13,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/conveyor")
 @RequiredArgsConstructor
-public class ConveyorControllerImpl implements ConveyorController {
+public class ConveyorControllerImpl implements ConveyorApi {
 
     private final ConveyorService conveyorService;
 
-
-    @PostMapping("/offers")
-    public ResponseEntity<List<LoanOfferDTO>> getLoanOfferDTOs(@RequestBody LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        return ResponseEntity.ok(conveyorService.composeLoanOfferList(loanApplicationRequestDTO));
-    }
-
-    @PostMapping("/calculation")
-    public ResponseEntity<CreditDTO> getCreditDTO(@RequestBody ScoringDataDTO scoringDataDTO) {
+    @Override
+    public ResponseEntity<CreditDTO> getCreditDTO(ScoringDataDTO scoringDataDTO) {
         return ResponseEntity.ok(conveyorService.composeCreditDTO(scoringDataDTO));
     }
 
-//    @ExceptionHandler(ScoringException.class)
-//    public ResponseEntity<ErrorMessage> handleException(ScoringException exception) {
-//        return ResponseEntity
-//                .status(HttpStatus.BAD_REQUEST)
-//                .body(new ErrorMessage(exception.getMessage()));
-//    }
+    @Override
+    public ResponseEntity<List<LoanOfferDTO>> getLoanOfferDTOs(LoanApplicationRequestDTO loanApplicationRequestDTO) {
+        return ResponseEntity.ok(conveyorService.composeLoanOfferList(loanApplicationRequestDTO));
+    }
 }
