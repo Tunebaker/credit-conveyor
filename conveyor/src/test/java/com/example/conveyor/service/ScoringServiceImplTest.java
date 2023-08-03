@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.EMPLOYED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ScoringServiceImplTest {
 
@@ -32,6 +32,25 @@ class ScoringServiceImplTest {
                 .build();
         Map<String, String> requestValid = scoringServiceImpl.preScore(requestDTO);
         assertEquals(0, requestValid.size());
+        assertFalse(requestValid.containsKey("Фамилия"));
+    }
+
+    @Test
+    void preScoreWithBadParameters() {
+        LoanApplicationRequestDTO requestDTO = LoanApplicationRequestDTO.builder()
+                .birthdate(LocalDate.parse("2023-02-02"))
+                .amount(BigDecimal.valueOf(100))
+                .email("qwerty.ru")
+                .firstName("w")
+                .lastName("r")
+                .middleName("3")
+                .passportNumber("2123456")
+                .passportSeries("12 34")
+                .term(1)
+                .build();
+        Map<String, String> requestValid = scoringServiceImpl.preScore(requestDTO);
+        assertEquals(9, requestValid.size());
+        assertTrue(requestValid.containsKey("Фамилия"));
 
     }
 
