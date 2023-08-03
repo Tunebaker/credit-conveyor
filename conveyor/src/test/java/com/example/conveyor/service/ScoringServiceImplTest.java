@@ -3,16 +3,19 @@ package com.example.conveyor.service;
 import com.example.conveyor.model.EmploymentDTO;
 import com.example.conveyor.model.LoanApplicationRequestDTO;
 import com.example.conveyor.model.ScoringDataDTO;
+import com.example.conveyor.service.impl.ScoringServiceImpl;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Map;
 
 import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.EMPLOYED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ValidatorTest {
-    Validator validator = new Validator();
+class ScoringServiceImplTest {
+
+    ScoringService scoringServiceImpl = new ScoringServiceImpl();
 
     @Test
     void preScore() {
@@ -27,8 +30,8 @@ class ValidatorTest {
                 .passportSeries("1234")
                 .term(6)
                 .build();
-        String requestValid = validator.preScore(requestDTO);
-        assertEquals("", requestValid);
+        Map<String, String> requestValid = scoringServiceImpl.preScore(requestDTO);
+        assertEquals(0, requestValid.size());
 
     }
 
@@ -44,8 +47,8 @@ class ValidatorTest {
                         .salary(new BigDecimal(10000))
                         .build())
                 .build();
-        String scoringDataValid = validator.score(scoringDataDTO);
-        assertEquals("", scoringDataValid);
+        Map<String, String> scoringDataValid = scoringServiceImpl.score(scoringDataDTO);
+        assertEquals(0, scoringDataValid.size());
 
     }
 }
