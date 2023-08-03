@@ -3,7 +3,7 @@ package com.example.conveyor.service.impl;
 import com.example.conveyor.exception.ScoringException;
 import com.example.conveyor.model.*;
 import com.example.conveyor.service.ConveyorService;
-import com.example.conveyor.service.Validator;
+import com.example.conveyor.service.ScoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.BUSINESS_OWNER;
 import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.SELF_EMPLOYED;
@@ -29,7 +30,7 @@ import static com.example.conveyor.model.ScoringDataDTO.MaritalStatusEnum.MARRIE
 @Slf4j
 public class ConveyorServiceImpl implements ConveyorService {
 
-    private final Validator validator;
+    private final ScoringService scoringService;
 
     private static final Double BASE_RATE = 0.3;
     private static final MathContext INTERNAL_MATH_CONTEXT = MathContext.DECIMAL64;
@@ -49,10 +50,10 @@ public class ConveyorServiceImpl implements ConveyorService {
 
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         log.info("Получена заявка на кредит {}", loanApplicationRequestDTO);
-        String validationMessage = validator.preScore(loanApplicationRequestDTO);
-        if (!validationMessage.equals("")) {
-            log.warn("Ошибка валидации: {}", validationMessage);
-            throw new ScoringException("Ошибка валидации: " + validationMessage);
+        Map<String, String> validationErrors = scoringService.preScore(loanApplicationRequestDTO);
+        if (validationErrors.size() != 0){
+            log.warn("Ошибка валидации: {}", validationErrors);
+            throw new ScoringException("Ошибка валидации: " + validationErrors);
         }
 
         long applicationId = 0L;
@@ -68,10 +69,10 @@ public class ConveyorServiceImpl implements ConveyorService {
 
     public CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO) {
         log.info("Клиентом выбрано предложение: {}", scoringDataDTO);
-        String validationMessage = validator.score(scoringDataDTO);
-        if (!validationMessage.equals("")) {
-            log.warn("Отказ в выдаче кредита. Причина: {}", validationMessage);
-            throw new ScoringException("Отказ в выдаче кредита. Причина: " + validationMessage);
+        Map<String, String> validationErrors = scoringService.score(scoringDataDTO);
+        if (validationErrors.size() != 0) {
+            log.warn("Отказ в выдаче кредита. Причина: {}", validationErrors);
+            throw new ScoringException("Отказ в выдаче кредита. Причина: " + validationErrors);
         }
 
         BigDecimal rate = getScoringRate(scoringDataDTO);

@@ -1,14 +1,13 @@
 package com.example.conveyor.service;
 
-import com.example.conveyor.dto.CreditDTO;
-import com.example.conveyor.dto.LoanApplicationRequestDTO;
-import com.example.conveyor.dto.LoanOfferDTO;
-import com.example.conveyor.dto.ScoringDataDTO;
+import com.example.conveyor.model.LoanApplicationRequestDTO;
+import com.example.conveyor.model.ScoringDataDTO;
 
-import java.util.List;
+import java.util.Map;
 
 public interface ScoringService {
-    List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO);
+    Map<String, String> preScore(LoanApplicationRequestDTO loanApplicationRequestDTO);
 
-    CreditDTO composeCreditDTO(ScoringDataDTO scoringDataDTO);
+    Map<String, String> score(ScoringDataDTO scoringDataDTO);
+
 }
