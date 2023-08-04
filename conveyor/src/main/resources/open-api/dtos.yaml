@@ -1,19 +1,26 @@
 openapi: 3.0.3
 info:
   title: Кредитный конвейер - OpenAPI 3.0
-  description: Микросервис конвейер
+  description: Микросервис Конвейер. Цель проекта - реализовать бэкенд-приложение с микросервисной архитектурой - прототип небольшого банка
   version: 1.0.11
 servers:
   - url: https://localhost:8080/
+
+tags:
+  - name: conveyor
+    description: Микросервис Конвейер
+
 paths:
   /conveyor/offers:
     post:
-      summary: прескоринг расчёт 4 кредитных предложений
+      tags:
+        - conveyor
+      summary: Прескоринг, расчёт 4 кредитных предложений
       operationId: getLoanOfferDTOs
-      description: предварительный расчёт 4 кредитных предложений
+      description: расчёт возможных условий кредита
       requestBody:
         required: true
-        description: предварительный расчёт 4 кредитных предложений
+        description: расчёт возможных условий кредита
         content:
           application/json:
             schema:
@@ -31,12 +38,14 @@ paths:
           description: Invalid input
   /conveyor/calculation:
     post:
-      summary: прескоринг расчёт 4 кредитных предложений
+      tags:
+        - conveyor
+      summary: Скоринг
       operationId: getCreditDTO
-      description: предварительный расчёт 4 кредитных предложений
+      description: валидация присланных данных + полный расчет параметров кредита
       requestBody:
         required: true
-        description: предварительный расчёт 4 кредитных предложений
+        description: Скоринг данных, высчитывание ставки, полной стоимости кредита, размера ежемесячного платежа, графика ежемесячных платежей
         content:
           application/json:
             schema:
