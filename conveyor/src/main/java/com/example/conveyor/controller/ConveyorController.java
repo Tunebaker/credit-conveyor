@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class ConveyorControllerImpl implements ConveyorApi {
+public class ConveyorController implements ConveyorApi {
 
     private final ConveyorService conveyorService;
 
