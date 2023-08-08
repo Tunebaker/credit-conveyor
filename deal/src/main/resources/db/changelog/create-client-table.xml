@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <changeSet id="create_table_client" author="Andrey_Gurinov">
+        <createTable tableName="client">
+            <column autoIncrement="true" name="client_id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="last_name" type="varchar">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="first_name" type="varchar">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="middle_name" type="varchar">
+                <constraints nullable="true" unique="false"/>
+            </column>
+            <column name="birthdate" type="date">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="email" type="varchar">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="gender" type="varchar">
+                <constraints nullable="true" unique="false"/>
+            </column>
+            <column name="marital_status" type="varchar">
+                <constraints nullable="true" unique="false"/>
+            </column>
+            <column name="dependent_amount" type="int">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="passport_id" type="jsonb">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="employment_id" type="jsonb">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="account" type="varchar">
+                <constraints nullable="true" unique="false"/>
+            </column>
+
+
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

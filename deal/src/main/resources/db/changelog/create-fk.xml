@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <changeSet id="create_fk" author="Andrey_Gurinov">
+        <addForeignKeyConstraint baseTableName="application"
+                                 baseColumnNames="client_id"
+                                 constraintName="client_id_fk"
+                                 referencedTableName="client"
+                                 referencedColumnNames="client_id"/>
+
+        <addForeignKeyConstraint baseTableName="application"
+                                 baseColumnNames="credit_id"
+                                 constraintName="credit_id_fk"
+                                 referencedTableName="credit"
+                                 referencedColumnNames="credit_id"/>
+    </changeSet>
+</databaseChangeLog>
