@@ -73,6 +73,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>3.1.1</version>
 				<configuration>
 					<excludes>
 						<exclude>
@@ -81,6 +82,37 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>5.4.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatorName>spring</generatorName>
+							<apiPackage>com.example.deal.api</apiPackage>
+							<modelPackage>com.example.deal.model</modelPackage>
+							<typeMappings>
+								<typeMapping>double=java.math.BigDecimal</typeMapping>
+								<typeMapping>date=java.time.LocalDate</typeMapping>
+							</typeMappings>
+							<inputSpec>${project.basedir}/src/main/resources/open-api/deal-dtos.yaml</inputSpec>
+							<configOptions>
+								<delegatePattern>false</delegatePattern>
+								<interfaceOnly>true</interfaceOnly>
+								<useBeanValidation>true</useBeanValidation>
+								<library>spring-mvc</library>
+								<dateLibrary>java11</dateLibrary>
+								<java11>true</java11>
+								<additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
