@@ -18,7 +18,7 @@
             <column name="middle_name" type="varchar">
                 <constraints nullable="true" unique="false"/>
             </column>
-            <column name="birthdate" type="date">
+            <column name="birth_date" type="date">
                 <constraints nullable="false" unique="false"/>
             </column>
             <column name="email" type="varchar">
@@ -31,13 +31,13 @@
                 <constraints nullable="true" unique="false"/>
             </column>
             <column name="dependent_amount" type="int">
-                <constraints nullable="false" unique="false"/>
+                <constraints nullable="true" unique="false"/>
             </column>
-            <column name="passport_id" type="jsonb">
-                <constraints nullable="false" unique="false"/>
+            <column name="passport" type="jsonb">
+                <constraints nullable="true" unique="false"/>
             </column>
-            <column name="employment_id" type="jsonb">
-                <constraints nullable="false" unique="false"/>
+            <column name="employment" type="jsonb">
+                <constraints nullable="true" unique="false"/>
             </column>
             <column name="account" type="varchar">
                 <constraints nullable="true" unique="false"/>
