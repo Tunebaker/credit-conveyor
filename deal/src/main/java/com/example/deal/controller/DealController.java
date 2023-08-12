@@ -25,7 +25,8 @@ public class DealController implements DealApi {
 
     @Override
     public ResponseEntity<Void> chooseOffer(LoanOfferDTO loanOfferDTO) {
-        return DealApi.super.chooseOffer(loanOfferDTO);
+        dealService.applyOffer(loanOfferDTO);
+        return ResponseEntity.ok().build();
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREAPPROVAL;
 
@@ -34,5 +35,11 @@ public class ApplicationServiceImpl implements ApplicationService {
                 .statusHistory(history)
                 .build();
         return applicationRepository.save(application);
+    }
+
+    @Override
+    public ApplicationEntity findApplicationById(Long id) {
+        return applicationRepository.findById(id).orElseThrow();
+
     }
 }
