@@ -20,9 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DealController implements DealApi {
 
-    private final ClientService clientService; // TODO for testing purpose
     private final DealService dealService;
-
 
     @Override
     public ResponseEntity<List<LoanOfferDTO>> getLoanOfferDTOs(LoanApplicationRequestDTO loanApplicationRequestDTO) {

@@ -7,6 +7,7 @@ import com.example.deal.model.LoanOfferDTO;
 import com.example.deal.service.interfaces.ApplicationService;
 import com.example.deal.service.interfaces.ClientService;
 import com.example.deal.service.interfaces.DealService;
+import com.example.deal.util.FeignServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +19,13 @@ public class DealServiceImpl implements DealService {
 
     private final ClientService clientService;
     private final ApplicationService applicationService;
+    private final FeignServiceUtil feignServiceUtil;
 
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         ClientEntity client = clientService.saveClient(loanApplicationRequestDTO);
         applicationService.saveApplication(client.getClientId());
-        return null;
+        return feignServiceUtil.getLoanOfferDtos(loanApplicationRequestDTO);
     }
 
     @Override
