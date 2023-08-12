@@ -1,16 +1,12 @@
 package com.example.deal.controller;
 
-import com.example.deal.model.ClientEntity;
+import com.example.deal.api.DealApi;
 import com.example.deal.model.FinishRegistrationRequestDTO;
 import com.example.deal.model.LoanApplicationRequestDTO;
 import com.example.deal.model.LoanOfferDTO;
-import com.example.deal.api.DealApi;
-import com.example.deal.service.interfaces.ClientService;
 import com.example.deal.service.interfaces.DealService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;

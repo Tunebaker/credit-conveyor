@@ -1,9 +1,6 @@
 package com.example.deal.service;
 
-import com.example.deal.model.ClientEntity;
-import com.example.deal.model.FinishRegistrationRequestDTO;
-import com.example.deal.model.LoanApplicationRequestDTO;
-import com.example.deal.model.LoanOfferDTO;
+import com.example.deal.model.*;
 import com.example.deal.service.interfaces.ApplicationService;
 import com.example.deal.service.interfaces.ClientService;
 import com.example.deal.service.interfaces.DealService;
@@ -24,8 +21,10 @@ public class DealServiceImpl implements DealService {
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         ClientEntity client = clientService.saveClient(loanApplicationRequestDTO);
-        applicationService.saveApplication(client.getClientId());
-        return feignServiceUtil.getLoanOfferDtos(loanApplicationRequestDTO);
+        ApplicationEntity application = applicationService.saveApplication(client.getClientId());
+        List<LoanOfferDTO> loanOfferDtos = feignServiceUtil.getLoanOfferDtos(loanApplicationRequestDTO);
+        loanOfferDtos.forEach(offer -> offer.setApplicationId(application.getApplicationId()));
+        return loanOfferDtos;
     }
 
     @Override
