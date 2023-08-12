@@ -417,6 +417,36 @@ components:
           description: Номер счёта заемщика
           format: string
 
+    ApplicationStatusHistoryDTO:
+      type: object
+      description: История статусов заявки
+      properties:
+        status:
+          type: string
+          description: Cтатус заявки
+          enum:
+            [    PREAPPROVAL,
+                 APPROVED,
+                 CC_DENIED,
+                 CC_APPROVED,
+                 PREPARE_DOCUMENTS,
+                 CLIENT_DENIED,
+                 DOCUMENT_SIGNED,
+                 CREDIT_ISSUED
+            ]
+          example: PREAPPROVAL
+        time:
+          type: string
+          description: Время смены статуса
+          format: datetime
+        changeType:
+          type: string
+          description: Тип обновления статуса
+          enum:
+            [ AUTOMATIC,
+              MANUAL ]
+          example: AUTOMATIC
+
 
 
 

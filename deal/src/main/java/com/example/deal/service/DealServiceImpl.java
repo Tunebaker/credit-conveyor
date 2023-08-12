@@ -30,6 +30,7 @@ public class DealServiceImpl implements DealService {
     @Override
     public void applyOffer(LoanOfferDTO loanOfferDTO) {
         //////////
+
     }
 
     @Override
