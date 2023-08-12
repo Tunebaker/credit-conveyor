@@ -19,7 +19,7 @@ import java.time.LocalDate;
 public class ApplicationEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long applicationId;
     private Long clientId;
     private Long creditId;
