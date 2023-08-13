@@ -70,7 +70,8 @@ paths:
           description: applicationId идентификационный номер заявки
           required: true
           schema:
-            type: number
+            type: integer
+            format: int64
       requestBody:
         required: true
         description: завершение регистрации, полный подсчёт кредита
@@ -322,14 +323,7 @@ components:
           format: string
           example: Ivanovich
         gender:
-          type: string
-          description: Пол
-          format: string
-          enum:
-            [ MALE,
-              FEMALE,
-              NON_BINARY ]
-          example: MALE
+          $ref: '#/components/schemas/Gender'
         birthdate:
           type: string
           description: Дата рождения заемщика
@@ -355,13 +349,7 @@ components:
           description: Подразделение, выдавшее паспорт
           format: string
         maritalStatus:
-          type: string
-          description: Семейный статус
-          enum:
-            [ SINGLE,
-              MARRIED,
-              DIVORCED ]
-          example: SINGLE
+          $ref: '#/components/schemas/MaritalStatus'
         dependentAmount:
           type: integer
           description: Количество иждивенцев
@@ -385,22 +373,13 @@ components:
       description: Данные для окончательного расчёта параметров кредита
       properties:
         gender:
-          type: string
-          description: Пол
-          format: string
-          enum:
-            [ MALE,
-              FEMALE,
-              NON_BINARY ]
-          example: MALE
+          $ref: '#/components/schemas/Gender'
         maritalStatus:
-          type: string
-          description: Семейный статус
-          enum:
-            [ SINGLE,
-              MARRIED,
-              DIVORCED ]
-          example: SINGLE
+          $ref: '#/components/schemas/MaritalStatus'
+        dependentAmount:
+          type: integer
+          description: Количество иждивенцев
+          example: 1
         passportIssueDate:
           type: string
           description: Дата выдачи паспорта
@@ -425,14 +404,14 @@ components:
           type: string
           description: Cтатус заявки
           enum:
-            [    PREAPPROVAL,
-                 APPROVED,
-                 CC_DENIED,
-                 CC_APPROVED,
-                 PREPARE_DOCUMENTS,
-                 CLIENT_DENIED,
-                 DOCUMENT_SIGNED,
-                 CREDIT_ISSUED
+            [ PREAPPROVAL,
+              APPROVED,
+              CC_DENIED,
+              CC_APPROVED,
+              PREPARE_DOCUMENTS,
+              CLIENT_DENIED,
+              DOCUMENT_SIGNED,
+              CREDIT_ISSUED
             ]
           example: PREAPPROVAL
         time:
@@ -447,6 +426,30 @@ components:
               MANUAL ]
           example: AUTOMATIC
 
+    Gender:
+      type: string
+      description: Пол
+      enum:
+        [ MALE,
+          FEMALE,
+          NON_BINARY ]
+      example: MALE
 
+    MaritalStatus:
+      type: string
+      description: Семейный статус
+      enum:
+        [ SINGLE,
+          MARRIED,
+          DIVORCED ]
+      example: SINGLE
+
+    CreditStatus:
+      type: string
+      description: Статус кредита
+      enum:
+        [ CALCULATED,
+          ISSUED ]
+      example: CALCULATED
 
 

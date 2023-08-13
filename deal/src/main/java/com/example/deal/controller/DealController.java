@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -30,7 +29,8 @@ public class DealController implements DealApi {
     }
 
     @Override
-    public ResponseEntity<Void> finishRegistration(BigDecimal applicationId, FinishRegistrationRequestDTO finishRegistrationRequestDTO) {
-        return DealApi.super.finishRegistration(applicationId, finishRegistrationRequestDTO);
+    public ResponseEntity<Void> finishRegistration(Long applicationId, FinishRegistrationRequestDTO finishRegistrationRequestDTO) {
+        dealService.calculateCredit(finishRegistrationRequestDTO, applicationId);
+        return ResponseEntity.ok().build();
     }
 }

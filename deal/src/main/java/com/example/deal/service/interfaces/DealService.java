@@ -9,5 +9,5 @@ import java.util.List;
 public interface DealService {
     List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO);
     void applyOffer(LoanOfferDTO loanOfferDTO);
-    void calculateCredit(FinishRegistrationRequestDTO finishRegistrationRequestDTO);
+    void calculateCredit(FinishRegistrationRequestDTO finishRegistrationRequestDTO, Long applicationId);
 }

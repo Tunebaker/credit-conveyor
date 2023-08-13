@@ -1,7 +1,5 @@
 package com.example.deal.model;
 
-import com.example.deal.model.enums.Gender;
-import com.example.deal.model.enums.MaritalStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
