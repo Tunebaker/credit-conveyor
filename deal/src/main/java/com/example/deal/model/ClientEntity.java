@@ -19,7 +19,7 @@ public class ClientEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ClientId;
+    private Long clientId;
     private String firstName;
     private String lastName;
     private String middleName;
