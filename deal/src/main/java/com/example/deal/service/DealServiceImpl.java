@@ -29,6 +29,7 @@ public class DealServiceImpl implements DealService {
 
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
+        log.info("Получен запрос на расчёт возможных условий кредита {} :" , loanApplicationRequestDTO);
         Passport passport = Passport.builder()
                 .series(loanApplicationRequestDTO.getPassportSeries())
                 .number(loanApplicationRequestDTO.getPassportNumber())
@@ -43,6 +44,7 @@ public class DealServiceImpl implements DealService {
                 .passport(passport)
                 .build();
         client = clientRepository.save(client);
+        log.info("Данные клиента сохранены в БД: {}", client);
 
         ApplicationEntity application = ApplicationEntity.builder()
                 .clientId(client.getClientId())
@@ -50,24 +52,30 @@ public class DealServiceImpl implements DealService {
         updateStatus(application, PREAPPROVAL);
 
         applicationRepository.save(application);
+        log.info("Заявка сохранена в БД: {}", application);
 
+        log.info("Запрос для расчета возможных условий кредита отправляется в МС Конвейер");
         List<LoanOfferDTO> loanOfferDtos = feignServiceUtil.getLoanOfferDtos(loanApplicationRequestDTO);
         loanOfferDtos.forEach(offer -> offer.setApplicationId(application.getApplicationId()));
+        log.info("Рассчитаны предложения по кредиту : {}", loanOfferDtos);
         return loanOfferDtos;
     }
 
     @Override
     public void applyOffer(LoanOfferDTO loanOfferDTO) {
+        log.info("Клиент выбрал заявку {}", loanOfferDTO);
         ApplicationEntity application = applicationRepository.findById(loanOfferDTO.getApplicationId()).orElseThrow();
 
         updateStatus(application, APPROVED);
 
         application.setAppliedOffer(loanOfferDTO);
         applicationRepository.save(application);
+        log.info("Заявка сохранена в БД: {}", application);
     }
 
     @Override
     public void calculateCredit(FinishRegistrationRequestDTO finishRegistrationRequestDTO, Long applicationId) {
+        log.info("По заявке id = {} получены данные для окончательного расчёта {}", applicationId, finishRegistrationRequestDTO);
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
         LoanOfferDTO appliedOffer = application.getAppliedOffer();
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
@@ -92,8 +100,9 @@ public class DealServiceImpl implements DealService {
                 .isSalaryClient(appliedOffer.getIsSalaryClient())
                 .build();
 
+        log.info("Сформированный запрос для полного расчета кредита отправляется в МС Конвейер {}", scoringDataDTO);
         CreditDTO creditDTO = feignServiceUtil.calculateCredit(scoringDataDTO);
-        CreditEntity creditEntity = CreditEntity.builder()
+        CreditEntity credit = CreditEntity.builder()
                 .amount(scoringDataDTO.getAmount())
                 .term(scoringDataDTO.getTerm())
                 .monthlyPayment(creditDTO.getMonthlyPayment())
@@ -104,14 +113,18 @@ public class DealServiceImpl implements DealService {
                 .salaryClient(creditDTO.getIsSalaryClient())
                 .creditStatus(CreditStatus.CALCULATED)
                 .build();
-        creditRepository.save(creditEntity);
-
+        log.info("Рассчитаны параметры кредита: {}", credit);
+        creditRepository.save(credit);
+        log.info("Параметры кредита сохранены в БД: {}", application);
         applicationRepository.save(updateStatus(application, CC_APPROVED));
+        log.info("Заявка сохранена в БД: {}", application);
     }
 
     private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status){
+        log.info("Для заявки id = {} запрошено изменение статуса на {} ", application.getApplicationId(), status);
         if(application.getStatusHistory() == null){
             application.setStatusHistory(new ArrayList<>());
+            log.info("Для новой заявки создана история статусов");
         }
         List<ApplicationStatusHistoryDTO> statusHistory = application.getStatusHistory();
         ApplicationStatusHistoryDTO applicationStatusHistoryDTO = ApplicationStatusHistoryDTO.builder()
@@ -122,6 +135,7 @@ public class DealServiceImpl implements DealService {
         statusHistory.add(applicationStatusHistoryDTO);
         application.setStatusHistory(statusHistory);
         application.setStatus(status);
+        log.info("Статус заявки изменен: {}", status);
         return application;
     }
 }
