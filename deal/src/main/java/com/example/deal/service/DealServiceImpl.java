@@ -1,6 +1,7 @@
 package com.example.deal.service;
 
 import com.example.deal.mapper.ClientMapper;
+import com.example.deal.mapper.CreditMapper;
 import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
@@ -91,18 +92,9 @@ public class DealServiceImpl implements DealService {
 
         log.info("Сформированный запрос для полного расчета кредита отправляется в МС Конвейер {}", scoringDataDTO);
         CreditDTO creditDTO = feignServiceUtil.calculateCredit(scoringDataDTO);
-        CreditEntity credit = CreditEntity.builder()
-                .amount(scoringDataDTO.getAmount())
-                .term(scoringDataDTO.getTerm())
-                .monthlyPayment(creditDTO.getMonthlyPayment())
-                .rate(creditDTO.getRate())
-                .psk(creditDTO.getPsk())
-                .paymentSchedule(creditDTO.getPaymentSchedule())
-                .insuranceEnable(creditDTO.getIsInsuranceEnabled())
-                .salaryClient(creditDTO.getIsSalaryClient())
-                .creditStatus(CreditStatus.CALCULATED)
-                .build();
+        CreditEntity credit = CreditMapper.INSTANCE.creditDTOToCredit(creditDTO);
         log.info("Рассчитаны параметры кредита: {}", credit);
+
         creditRepository.save(credit);
         log.info("Параметры кредита сохранены в БД: {}", application);
         applicationRepository.save(updateStatus(application, CC_APPROVED));
