@@ -4,7 +4,7 @@ import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.service.impl.DealServiceImpl;
-import com.example.deal.util.FeignServiceUtil;
+import com.example.deal.service.client.FeignServiceUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

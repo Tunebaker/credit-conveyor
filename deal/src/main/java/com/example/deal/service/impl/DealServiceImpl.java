@@ -7,7 +7,7 @@ import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DealService;
-import com.example.deal.util.FeignServiceUtil;
+import com.example.deal.service.client.FeignServiceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

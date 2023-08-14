@@ -1,4 +1,4 @@
-package com.example.deal.util;
+package com.example.deal.service.client;
 
 import com.example.deal.model.CreditDTO;
 import com.example.deal.model.LoanApplicationRequestDTO;
