@@ -1,5 +1,6 @@
 package com.example.deal.service;
 
+import com.example.deal.mapper.ClientMapper;
 import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
@@ -30,19 +31,7 @@ public class DealServiceImpl implements DealService {
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         log.info("Получен запрос на расчёт возможных условий кредита {} :" , loanApplicationRequestDTO);
-        Passport passport = Passport.builder()
-                .series(loanApplicationRequestDTO.getPassportSeries())
-                .number(loanApplicationRequestDTO.getPassportNumber())
-                .build();
-
-        ClientEntity client = ClientEntity.builder()
-                .lastName(loanApplicationRequestDTO.getLastName())
-                .firstName(loanApplicationRequestDTO.getFirstName())
-                .middleName(loanApplicationRequestDTO.getMiddleName())
-                .birthDate(loanApplicationRequestDTO.getBirthdate())
-                .email(loanApplicationRequestDTO.getEmail())
-                .passport(passport)
-                .build();
+        ClientEntity client = ClientMapper.INSTANCE.loanApplicationRequestToClient(loanApplicationRequestDTO);
         client = clientRepository.save(client);
         log.info("Данные клиента сохранены в БД: {}", client);
 
