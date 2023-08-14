@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class DealServiceImpl implements DealService {
 
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        log.info("Получен запрос на расчёт возможных условий кредита {} :" , loanApplicationRequestDTO);
+        log.info("Получен запрос на расчёт возможных условий кредита {} :", loanApplicationRequestDTO);
         ClientEntity client = ClientMapper.INSTANCE.loanApplicationRequestToClient(loanApplicationRequestDTO);
         client = clientRepository.save(client);
         log.info("Данные клиента сохранены в БД: {}", client);
@@ -90,20 +91,29 @@ public class DealServiceImpl implements DealService {
                 .isSalaryClient(appliedOffer.getIsSalaryClient())
                 .build();
 
-        log.info("Сформированный запрос для полного расчета кредита отправляется в МС Конвейер {}", scoringDataDTO);
         CreditDTO creditDTO = feignServiceUtil.calculateCredit(scoringDataDTO);
+        log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
+
         CreditEntity credit = CreditMapper.INSTANCE.creditDTOToCredit(creditDTO);
         log.info("Рассчитаны параметры кредита: {}", credit);
+        CreditEntity savedCredit = creditRepository.save(credit);
+        log.info("Параметры кредита сохранены в БД: {}", savedCredit);
 
-        creditRepository.save(credit);
-        log.info("Параметры кредита сохранены в БД: {}", application);
+        application.setCreditId(savedCredit.getCreditId());
+        application.setCreationDate(LocalDateTime.now());
         applicationRepository.save(updateStatus(application, CC_APPROVED));
         log.info("Заявка сохранена в БД: {}", application);
+
+        ClientEntity updatedClient = ClientMapper.INSTANCE.finishRegistrationRequestUpdateFields(client,
+                finishRegistrationRequestDTO);
+        clientRepository.save(updatedClient);
+        log.info("Данные о клиенте обновлены в БД: {}", updatedClient);
+
     }
 
-    private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status){
+    private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
         log.info("Для заявки id = {} запрошено изменение статуса на {} ", application.getApplicationId(), status);
-        if(application.getStatusHistory() == null){
+        if (application.getStatusHistory() == null) {
             application.setStatusHistory(new ArrayList<>());
             log.info("Для новой заявки создана история статусов");
         }

@@ -3,7 +3,6 @@ package com.example.deal.service;
 import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
-import com.example.deal.repository.CreditRepository;
 import com.example.deal.util.FeignServiceUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.*;
 class DealServiceImplTest {
     @InjectMocks
     DealServiceImpl dealService;
-
     @Mock
     ClientRepository clientRepository;
     @Mock
@@ -91,7 +89,4 @@ class DealServiceImplTest {
         verify(applicationRepository, times(1)).findById(any());
     }
 
-    @Test
-    void calculateCredit() {
-    }
 }

@@ -2,7 +2,6 @@ package com.example.deal.mapper;
 
 import com.example.deal.model.CreditDTO;
 import com.example.deal.model.CreditEntity;
-import com.example.deal.model.ScoringDataDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -14,7 +13,5 @@ public interface CreditMapper {
     @Mapping(target = "creditStatus", constant = "CALCULATED")
     @Mapping(source = "isSalaryClient", target = "salaryClient")
     @Mapping(source = "isInsuranceEnabled", target = "insuranceEnable")
-
-
     CreditEntity creditDTOToCredit(CreditDTO creditDTO);
 }

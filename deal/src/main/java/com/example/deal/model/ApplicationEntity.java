@@ -8,6 +8,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -24,7 +25,7 @@ public class ApplicationEntity {
     private Long clientId;
     private Long creditId;
     private ApplicationStatusHistoryDTO.StatusEnum status;
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
     @Type(type = "io.hypersistence.utils.hibernate.type.json.JsonBinaryType")
     private LoanOfferDTO appliedOffer;
     private LocalDate signDate;
