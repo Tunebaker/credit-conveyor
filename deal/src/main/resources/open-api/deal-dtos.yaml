@@ -1,13 +1,13 @@
 openapi: 3.0.3
 info:
   title: Кредитный конвейер - OpenAPI 3.0
-  description: Микросервис Конвейер. Цель проекта - реализовать бэкенд-приложение с микросервисной архитектурой - прототип небольшого банка
+  description: Кредитный Конвейер. Цель проекта - реализовать бэкенд-приложение с микросервисной архитектурой - прототип небольшого банка
   contact:
     name: Андрей Гуринов
     email: tunebaker@gmail.com
   version: 1.0.11
 servers:
-  - url: https://localhost:8080/
+  - url: https://localhost:8081/
 
 tags:
   - name: deal
