@@ -1,4 +1,4 @@
-package com.example.deal.service;
+package com.example.deal.service.impl;
 
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
@@ -6,13 +6,12 @@ import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
-import com.example.deal.service.interfaces.DealService;
+import com.example.deal.service.DealService;
 import com.example.deal.util.FeignServiceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

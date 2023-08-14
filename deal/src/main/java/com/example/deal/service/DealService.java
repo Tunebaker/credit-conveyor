@@ -1,4 +1,4 @@
-package com.example.deal.service.interfaces;
+package com.example.deal.service;
 
 import com.example.deal.model.FinishRegistrationRequestDTO;
 import com.example.deal.model.LoanApplicationRequestDTO;
