@@ -94,7 +94,14 @@ class DealServiceImplTest {
     void applyOfferTest() {
 
         when(applicationRepository.findById(any())).thenReturn(Optional.of(new ApplicationEntity()));
-        dealService.applyOffer(new LoanOfferDTO());
+        dealService.applyOffer(LoanOfferDTO.builder()
+                        .isInsuranceEnabled(true)
+                        .isSalaryClient(true)
+                        .term(7)
+                        .monthlyPayment(BigDecimal.ONE)
+                        .requestedAmount(BigDecimal.TEN)
+                        .totalAmount(BigDecimal.TEN)
+                .build());
 
         ArgumentCaptor<ApplicationEntity> applicationArgumentCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
         verify(applicationRepository, times(1)).save(applicationArgumentCaptor.capture());
