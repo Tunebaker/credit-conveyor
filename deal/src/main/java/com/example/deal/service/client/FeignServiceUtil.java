@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 
-@FeignClient(value = "feignConveyor", url = "${feign.url}")
+@FeignClient(value = "feignConveyor", url = "${conveyor.url}")
 public interface FeignServiceUtil {
 
     @PostMapping("/offers")
