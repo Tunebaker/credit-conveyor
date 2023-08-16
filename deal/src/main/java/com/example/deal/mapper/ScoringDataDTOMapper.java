@@ -11,7 +11,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface ScoringDataDTOMapper {
-    ScoringDataDTO INSTANCE = Mappers.getMapper(ScoringDataDTO.class);
+    ScoringDataDTOMapper INSTANCE = Mappers.getMapper(ScoringDataDTOMapper.class);
 
     @Mapping(source = "requestedAmount", target = "amount")
     ScoringDataDTO loanOfferDtoToScoringDataDTO(LoanOfferDTO loanOfferDTO);

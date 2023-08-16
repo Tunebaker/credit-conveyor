@@ -2,6 +2,7 @@ package com.example.deal.service.impl;
 
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
+import com.example.deal.mapper.ScoringDataDTOMapper;
 import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
@@ -69,26 +70,10 @@ public class DealServiceImpl implements DealService {
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
         LoanOfferDTO appliedOffer = application.getAppliedOffer();
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
-        Passport passport = client.getPassport();
-        ScoringDataDTO scoringDataDTO = ScoringDataDTO.builder()
-                .amount(appliedOffer.getRequestedAmount())
-                .term(appliedOffer.getTerm())
-                .firstName(client.getFirstName())
-                .lastName(client.getLastName())
-                .middleName(client.getMiddleName())
-                .gender(finishRegistrationRequestDTO.getGender())
-                .birthdate(client.getBirthDate())
-                .passportSeries(passport.getSeries())
-                .passportNumber(passport.getNumber())
-                .passportIssueDate(passport.getIssueDate())
-                .passportIssueBranch(passport.getIssueBranch())
-                .maritalStatus(finishRegistrationRequestDTO.getMaritalStatus())
-                .dependentAmount(finishRegistrationRequestDTO.getDependentAmount())
-                .employment(finishRegistrationRequestDTO.getEmployment())
-                .account(finishRegistrationRequestDTO.getAccount())
-                .isInsuranceEnabled(appliedOffer.getIsInsuranceEnabled())
-                .isSalaryClient(appliedOffer.getIsSalaryClient())
-                .build();
+
+        ScoringDataDTO scoringDataDTO = ScoringDataDTOMapper.INSTANCE.loanOfferDtoToScoringDataDTO(appliedOffer);
+        scoringDataDTO = ScoringDataDTOMapper.INSTANCE.clientEntityToScoringDataDTOUpdate(scoringDataDTO, client);
+        scoringDataDTO = ScoringDataDTOMapper.INSTANCE.finishRegistrationRequestToScoringDataUpdate(scoringDataDTO, finishRegistrationRequestDTO);
 
         CreditDTO creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
         log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
