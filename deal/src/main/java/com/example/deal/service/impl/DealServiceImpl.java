@@ -3,7 +3,15 @@ package com.example.deal.service.impl;
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataDTOMapper;
-import com.example.deal.model.*;
+import com.example.deal.model.ApplicationEntity;
+import com.example.deal.model.ApplicationStatusHistoryDTO;
+import com.example.deal.model.ClientEntity;
+import com.example.deal.model.CreditDTO;
+import com.example.deal.model.CreditEntity;
+import com.example.deal.model.FinishRegistrationRequestDTO;
+import com.example.deal.model.LoanApplicationRequestDTO;
+import com.example.deal.model.LoanOfferDTO;
+import com.example.deal.model.ScoringDataDTO;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
@@ -18,7 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.deal.model.ApplicationStatusHistoryDTO.ChangeTypeEnum.AUTOMATIC;
-import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.*;
+import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.APPROVED;
+import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_APPROVED;
+import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREAPPROVAL;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -71,9 +81,10 @@ public class DealServiceImpl implements DealService {
         LoanOfferDTO appliedOffer = application.getAppliedOffer();
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
 
-        ScoringDataDTO scoringDataDTO = ScoringDataDTOMapper.INSTANCE.loanOfferDtoToScoringDataDTO(appliedOffer);
-        scoringDataDTO = ScoringDataDTOMapper.INSTANCE.clientEntityToScoringDataDTOUpdate(scoringDataDTO, client);
-        scoringDataDTO = ScoringDataDTOMapper.INSTANCE.finishRegistrationRequestToScoringDataUpdate(scoringDataDTO, finishRegistrationRequestDTO);
+        ScoringDataDTOMapper mapper = ScoringDataDTOMapper.INSTANCE;
+        ScoringDataDTO scoringDataDTO = mapper.loanOfferDtoToScoringDataDTO(appliedOffer);
+        scoringDataDTO = mapper.clientEntityToScoringDataDTOUpdate(scoringDataDTO, client);
+        scoringDataDTO = mapper.finishRegistrationRequestToScoringDataUpdate(scoringDataDTO, finishRegistrationRequestDTO);
 
         CreditDTO creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
         log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
@@ -96,7 +107,7 @@ public class DealServiceImpl implements DealService {
     }
 
     private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
-        log.info("Для заявки запрошено изменение статуса на {} ",  status);
+        log.info("Для заявки запрошено изменение статуса на {} ", status);
         if (application.getStatusHistory() == null) {
             application.setStatusHistory(new ArrayList<>());
             log.info("Для новой заявки создана история статусов");
