@@ -13,7 +13,7 @@ import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.impl.DealServiceImpl;
-import com.example.deal.service.client.FeignServiceUtil;
+import com.example.deal.service.client.FeignConveyorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,7 +44,7 @@ class DealServiceImplTest {
     @Mock
     CreditRepository creditRepository;
     @Mock
-    FeignServiceUtil feignServiceUtil;
+    FeignConveyorService feignConveyorService;
 
     @Test
     void createApplicationTest() {
@@ -86,7 +86,7 @@ class DealServiceImplTest {
         ApplicationEntity capturedArgument = applicationArgumentCaptor.getValue();
         assertEquals(PREAPPROVAL, capturedArgument.getStatus());
 
-        verify(feignServiceUtil, times(1)).getLoanOfferDtos(requestDTO);
+        verify(feignConveyorService, times(1)).getLoanOfferDtos(requestDTO);
 
     }
 
@@ -147,7 +147,7 @@ class DealServiceImplTest {
         assertEquals("3211", clientCaptured.getPassport().getSeries());
 
 
-        verify(feignServiceUtil, times(1)).calculateCredit(any());
+        verify(feignConveyorService, times(1)).calculateCredit(any());
     }
 
 }

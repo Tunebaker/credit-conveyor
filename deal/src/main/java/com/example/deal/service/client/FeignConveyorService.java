@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 
 @FeignClient(value = "feignConveyor", url = "${conveyor.url}")
-public interface FeignServiceUtil {
+public interface FeignConveyorService {
 
     @PostMapping("/offers")
     List<LoanOfferDTO> getLoanOfferDtos(LoanApplicationRequestDTO loanApplicationRequestDTO);

@@ -7,7 +7,7 @@ import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DealService;
-import com.example.deal.service.client.FeignServiceUtil;
+import com.example.deal.service.client.FeignConveyorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class DealServiceImpl implements DealService {
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
     private final CreditRepository creditRepository;
-    private final FeignServiceUtil feignServiceUtil;
+    private final FeignConveyorService feignConveyorService;
 
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
@@ -45,7 +45,7 @@ public class DealServiceImpl implements DealService {
         log.info("Заявка сохранена в БД: {}", application);
 
         log.info("Запрос для расчета возможных условий кредита отправляется в МС Конвейер");
-        List<LoanOfferDTO> loanOfferDtos = feignServiceUtil.getLoanOfferDtos(loanApplicationRequestDTO);
+        List<LoanOfferDTO> loanOfferDtos = feignConveyorService.getLoanOfferDtos(loanApplicationRequestDTO);
         loanOfferDtos.forEach(offer -> offer.setApplicationId(application.getApplicationId()));
         log.info("Рассчитаны предложения по кредиту : {}", loanOfferDtos);
         return loanOfferDtos;
@@ -90,7 +90,7 @@ public class DealServiceImpl implements DealService {
                 .isSalaryClient(appliedOffer.getIsSalaryClient())
                 .build();
 
-        CreditDTO creditDTO = feignServiceUtil.calculateCredit(scoringDataDTO);
+        CreditDTO creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
         log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
 
         CreditEntity credit = CreditMapper.INSTANCE.creditDTOToCredit(creditDTO);
@@ -111,7 +111,7 @@ public class DealServiceImpl implements DealService {
     }
 
     private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
-        log.info("Для заявки id = {} запрошено изменение статуса на {} ", application.getApplicationId(), status);
+        log.info("Для заявки запрошено изменение статуса на {} ",  status);
         if (application.getStatusHistory() == null) {
             application.setStatusHistory(new ArrayList<>());
             log.info("Для новой заявки создана история статусов");
