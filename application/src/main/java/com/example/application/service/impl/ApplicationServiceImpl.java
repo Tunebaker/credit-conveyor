@@ -19,7 +19,7 @@ public class ApplicationServiceImpl {
     private final FeignDealService feignDealService;
     private final PreScoringServiceImpl preScoringService;
 
-    private final static String PRESCORING_ERROR_MESSAGE = "заявка не прошла прескоринг по причинам: ";
+    private static final String PRESCORING_ERROR_MESSAGE = "заявка не прошла прескоринг по причинам: ";
 
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         log.info("прескоринг запроса: {}", loanApplicationRequestDTO);
