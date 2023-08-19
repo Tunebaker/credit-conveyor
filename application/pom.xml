@@ -52,6 +52,12 @@
             <artifactId>logbook-spring-boot-starter</artifactId>
             <version>2.14.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <version>3.1.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -80,8 +86,8 @@
                         </goals>
                         <configuration>
                             <generatorName>spring</generatorName>
-                            <apiPackage>com.example.conveyor.api</apiPackage>
-                            <modelPackage>com.example.conveyor.model</modelPackage>
+                            <apiPackage>com.example.application.api</apiPackage>
+                            <modelPackage>com.example.application.model</modelPackage>
                             <typeMappings>
                                 <typeMapping>double=java.math.BigDecimal</typeMapping>
                                 <typeMapping>date=java.time.LocalDate</typeMapping>

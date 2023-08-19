@@ -1,9 +1,9 @@
 package com.example.application.controller;
 
-import com.example.application.service.client.ApplicationService;
-import com.example.conveyor.api.ApplicationApi;
-import com.example.conveyor.model.LoanApplicationRequestDTO;
-import com.example.conveyor.model.LoanOfferDTO;
+import com.example.application.api.ApplicationApi;
+import com.example.application.model.LoanOfferDTO;
+import com.example.application.service.impl.ApplicationServiceImpl;
+import com.example.application.model.LoanApplicationRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,16 +14,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationController implements ApplicationApi {
 
-    private final ApplicationService applicationService;
+    private final ApplicationServiceImpl applicationServiceImpl;
 
     @Override
     public ResponseEntity<List<LoanOfferDTO>> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        return ResponseEntity.ok(applicationService.createApplication(loanApplicationRequestDTO));
+        return ResponseEntity.ok(applicationServiceImpl.createApplication(loanApplicationRequestDTO));
     }
 
     @Override
     public ResponseEntity<Void> applyOffer(LoanOfferDTO loanOfferDTO) {
-        applicationService.applyOffer(loanOfferDTO);
+        applicationServiceImpl.applyOffer(loanOfferDTO);
         return ResponseEntity.ok().build();
     }
 }
