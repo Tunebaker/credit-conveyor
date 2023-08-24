@@ -10,9 +10,9 @@ import java.util.List;
 
 @FeignClient(value = "feignDeal", url = "${deal.url}")
 public interface FeignDealService {
-    @PostMapping("/application")
+    @PostMapping("/deal/application")
     List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO);
 
-    @PutMapping("/offer")
+    @PutMapping("/deal/offer")
     void applyOffer(LoanOfferDTO loanOfferDTO);
 }
