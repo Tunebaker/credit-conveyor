@@ -1,14 +1,16 @@
 package com.example.application.service.impl;
 
+import com.example.application.exception.PreScoringException;
 import com.example.application.model.LoanApplicationRequestDTO;
 import com.example.application.service.PreScoringService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PreScoringServiceImplTest {
 
@@ -26,9 +28,7 @@ class PreScoringServiceImplTest {
                 .passportNumber("123456")
                 .passportSeries("1234")
                 .term(6);
-        Map<String, String> requestValid = preScoringService.preScore(requestDTO);
-        assertEquals(0, requestValid.size());
-        assertFalse(requestValid.containsKey("Фамилия"));
+        assertDoesNotThrow(() -> preScoringService.preScore(requestDTO));
     }
 
     @Test
@@ -43,9 +43,16 @@ class PreScoringServiceImplTest {
                 .passportNumber("2123456")
                 .passportSeries("12 34")
                 .term(1);
-        Map<String, String> requestValid = preScoringService.preScore(requestDTO);
-        assertEquals(9, requestValid.size());
-        assertTrue(requestValid.containsKey("Фамилия"));
+        PreScoringException preScoringException = assertThrows(PreScoringException.class, () -> preScoringService.preScore(requestDTO));
+        assertTrue(preScoringException.getMessage().contains("Серия паспорта=должна содержать 4 цифры без пробела"));
+        assertTrue(preScoringException.getMessage().contains("Имя=должно содержать от 2 до 30 латинских букв"));
+        assertTrue(preScoringException.getMessage().contains("Номер паспорта=должен содержать 6 цифр"));
+        assertTrue(preScoringException.getMessage().contains("Фамилия=должна содержать от 2 до 30 латинских букв"));
+        assertTrue(preScoringException.getMessage().contains("Сумма кредита=должна быть действительным числом, большим или равным 10000"));
+        assertTrue(preScoringException.getMessage().contains("Срок кредита=должен быть целым числом, большим или равным 6"));
+        assertTrue(preScoringException.getMessage().contains("Отчество=при наличии должно содержать от 2 до 30 латинских букв"));
+        assertTrue(preScoringException.getMessage().contains("Email адрес=строка, подходящая под паттерн [\\w\\.]{2,50}@[\\w\\.]{2,20}"));
+        assertTrue(preScoringException.getMessage().contains("Дата рождения=должна быть в числовом формате гггг-мм-дд, не позднее чем за 18 лет до текущего дня"));
 
     }
 }

@@ -25,7 +25,7 @@ public class PreScoringServiceImpl implements PreScoringService {
     private static final Long MINIMAL_AGE = 18L;
     private static final String PRESCORING_ERROR_MESSAGE = "заявка не прошла прескоринг по причинам: ";
 
-    public Map<String, String> preScore(LoanApplicationRequestDTO loanApplicationRequestDTO) {
+    public void preScore(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         Map<String, String> validationErrors = new HashMap<>();
         if (!loanApplicationRequestDTO.getFirstName().matches(NAMES_PATTERN)) {
             validationErrors.put("Имя", "должно содержать от 2 до 30 латинских букв");
@@ -59,6 +59,5 @@ public class PreScoringServiceImpl implements PreScoringService {
             log.warn(PRESCORING_ERROR_MESSAGE + "{}", validationErrors);
             throw new PreScoringException(PRESCORING_ERROR_MESSAGE + validationErrors);
         }
-        return validationErrors;
     }
 }

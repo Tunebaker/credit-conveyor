@@ -5,6 +5,6 @@ import com.example.application.model.LoanApplicationRequestDTO;
 import java.util.Map;
 
 public interface PreScoringService {
-    Map<String, String> preScore(LoanApplicationRequestDTO loanApplicationRequestDTO);
+    void preScore(LoanApplicationRequestDTO loanApplicationRequestDTO);
 
 }
