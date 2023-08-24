@@ -1,5 +1,6 @@
 package com.example.application.service.impl;
 
+import com.example.application.exception.PreScoringException;
 import com.example.application.model.LoanApplicationRequestDTO;
 import com.example.application.service.PreScoringService;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ public class PreScoringServiceImpl implements PreScoringService {
     private static final BigDecimal MINIMAL_AMOUNT = new BigDecimal(10000);
     private static final Long MINIMAL_TERM = 6L;
     private static final Long MINIMAL_AGE = 18L;
+    private static final String PRESCORING_ERROR_MESSAGE = "заявка не прошла прескоринг по причинам: ";
 
     public Map<String, String> preScore(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         Map<String, String> validationErrors = new HashMap<>();
@@ -51,6 +53,11 @@ public class PreScoringServiceImpl implements PreScoringService {
         }
         if (!loanApplicationRequestDTO.getPassportNumber().matches(PASSPORT_NUMBER_PATTERN)) {
             validationErrors.put("Номер паспорта", "должен содержать 6 цифр");
+        }
+
+        if (validationErrors.size() != 0) {
+            log.warn(PRESCORING_ERROR_MESSAGE + "{}", validationErrors);
+            throw new PreScoringException(PRESCORING_ERROR_MESSAGE + validationErrors);
         }
         return validationErrors;
     }
