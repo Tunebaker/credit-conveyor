@@ -1,104 +1,97 @@
 package com.example.application.service.impl;
 
-import com.example.application.exception.PreScoringException;
-import com.example.application.model.LoanApplicationRequestDTO;
 import com.example.application.model.LoanOfferDTO;
-import com.example.application.service.client.FeignDealService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
-import org.mockito.Answers;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class ApplicationServiceImplTest {
 
-    @Mock
-    FeignDealService feignDealService;
-    @Mock
-    PreScoringServiceImpl preScoringService;
-    @InjectMocks
-    ApplicationServiceImpl applicationService;
+    private static WireMockServer wireMockServer;
 
-    @Test
-    void createApplication() {
-        LoanApplicationRequestDTO request = new LoanApplicationRequestDTO()
-                .amount(BigDecimal.ONE)
-                .birthdate(LocalDate.of(2000, 12, 30))
-                .email("qwe@rty.ru")
-                .firstName("Vasia")
-                .lastName("Vasin")
-                .middleName("Vasilievich")
-                .passportNumber("3333")
-                .passportSeries("333333")
-                .term(6);
-        when(preScoringService.preScore(request))
-                .thenReturn(new HashMap<>(0));
-        when(feignDealService.createApplication(request)).thenReturn(new ArrayList<>());
+    @Autowired
+    private MockMvc mockMvc;
 
-        List<LoanOfferDTO> loanOfferDTOs = applicationService.createApplication(request);
-
-        assertEquals(0, loanOfferDTOs.size());
+    @BeforeAll
+    static void init() {
+        wireMockServer = new WireMockServer(
+                new WireMockConfiguration().port(8081));
+        wireMockServer.start();
+        WireMock.configureFor("localhost", 8081);
     }
 
     @Test
-    void createApplicationInvalidRequestParams() {
-        LoanApplicationRequestDTO request = LoanApplicationRequestDTO.builder().build();
-        Map<String, String> validationErrors = Map.of("имя", "должно быть не менее 2 символов");
-        when(preScoringService.preScore(any(LoanApplicationRequestDTO.class)))
-                .thenReturn(validationErrors);
-        PreScoringException preScoringException = assertThrows(PreScoringException.class, () -> applicationService.createApplication(request));
-        assertTrue(preScoringException.getMessage().contains("заявка не прошла прескоринг по причинам: "));
+    void createApplicationTest() throws Exception {
+
+        String jsonRequestDTO = String.join("", Files.readAllLines(Path.of("src/test/resources/requestDTO.json")));
+        String jsonResponce = String.join("", Files.readAllLines(Path.of("src/test/resources/responceBody.json")));
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNodeResponce = mapper.readTree(jsonResponce);
+
+
+        stubFor(WireMock.post(urlMatching("/deal/application"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withJsonBody(jsonNodeResponce)));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/application")
+                        .content(jsonRequestDTO)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(jsonNodeResponce.toString()));
     }
 
     @Test
-    void applyOffer() {
+    void applyOffer() throws Exception {
         LoanOfferDTO loanOfferDTO = new LoanOfferDTO()
                 .applicationId(1L)
+                .requestedAmount(BigDecimal.TEN)
+                .totalAmount(BigDecimal.TEN)
                 .term(45)
-                .isInsuranceEnabled(true)
-                .isSalaryClient(true)
                 .monthlyPayment(BigDecimal.TEN)
                 .rate(BigDecimal.ONE)
-                .requestedAmount(BigDecimal.TEN)
-                .totalAmount(BigDecimal.TEN);
+                .isInsuranceEnabled(true)
+                .isSalaryClient(true);
 
-        applicationService.applyOffer(loanOfferDTO);
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String offerJson = ow.writeValueAsString(loanOfferDTO);
 
-        ArgumentCaptor<LoanOfferDTO> offerDTOArgumentCaptor = ArgumentCaptor.forClass(LoanOfferDTO.class);
+        stubFor(WireMock.put(urlMatching("/deal/offer"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())));
 
-        verify(feignDealService, times(1)).applyOffer(offerDTOArgumentCaptor.capture());
-        LoanOfferDTO capturedOffer = offerDTOArgumentCaptor.getValue();
-        assertEquals(1, capturedOffer.getApplicationId());
-        assertEquals(45, capturedOffer.getTerm());
-        assertEquals(true, capturedOffer.getIsInsuranceEnabled());
-        assertEquals(true, capturedOffer.getIsSalaryClient());
-        assertEquals(BigDecimal.TEN, capturedOffer.getMonthlyPayment());
-        assertEquals(BigDecimal.ONE, capturedOffer.getRate());
-        assertEquals(BigDecimal.TEN, capturedOffer.getRequestedAmount());
-        assertEquals(BigDecimal.TEN, capturedOffer.getTotalAmount());
-        assertEquals(capturedOffer, loanOfferDTO);
-
-        verifyNoInteractions(preScoringService);
-
+        mockMvc.perform(MockMvcRequestBuilders.put("/application/offer")
+                        .content(offerJson)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
+
 }

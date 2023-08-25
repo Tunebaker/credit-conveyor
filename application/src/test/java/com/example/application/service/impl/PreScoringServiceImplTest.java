@@ -33,7 +33,7 @@ class PreScoringServiceImplTest {
 
     @Test
     void preScoreWithBadParameters() {
-        LoanApplicationRequestDTO requestDTO = new LoanApplicationRequestDTO()
+        LoanApplicationRequestDTO requestDTO = LoanApplicationRequestDTO.builder()
                 .birthdate(LocalDate.parse("2023-02-02"))
                 .amount(BigDecimal.valueOf(100))
                 .email("qwerty.ru")
@@ -42,7 +42,8 @@ class PreScoringServiceImplTest {
                 .middleName("3")
                 .passportNumber("2123456")
                 .passportSeries("12 34")
-                .term(1);
+                .term(1)
+                .build();
         PreScoringException preScoringException = assertThrows(PreScoringException.class, () -> preScoringService.preScore(requestDTO));
         assertTrue(preScoringException.getMessage().contains("Серия паспорта=должна содержать 4 цифры без пробела"));
         assertTrue(preScoringException.getMessage().contains("Имя=должно содержать от 2 до 30 латинских букв"));
