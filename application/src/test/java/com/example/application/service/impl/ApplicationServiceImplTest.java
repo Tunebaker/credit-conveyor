@@ -47,48 +47,37 @@ class ApplicationServiceImplTest {
     @Test
     void createApplicationTest() throws Exception {
 
-        String jsonRequestDTO = String.join("", Files.readAllLines(Path.of("src/test/resources/requestDTO.json")));
-        String jsonResponce = String.join("", Files.readAllLines(Path.of("src/test/resources/responceBody.json")));
+        String createApplicationRequest = String.join("", Files.readAllLines(Path.of("src/test/resources/create-application-request.json")));
+        String createApplicationResponse = String.join("", Files.readAllLines(Path.of("src/test/resources/create-application-response.json")));
 
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNodeResponce = mapper.readTree(jsonResponce);
-
+        JsonNode jsonNodeResponse = mapper.readTree(createApplicationResponse);
 
         stubFor(WireMock.post(urlMatching("/deal/application"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", "application/json")
-                        .withJsonBody(jsonNodeResponce)));
+                        .withJsonBody(jsonNodeResponse)));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/application")
-                        .content(jsonRequestDTO)
+                        .content(createApplicationRequest)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(jsonNodeResponce.toString()));
+                .andExpect(content().string(jsonNodeResponse.toString()));
     }
 
     @Test
     void applyOffer() throws Exception {
-        LoanOfferDTO loanOfferDTO = new LoanOfferDTO()
-                .applicationId(1L)
-                .requestedAmount(BigDecimal.TEN)
-                .totalAmount(BigDecimal.TEN)
-                .term(45)
-                .monthlyPayment(BigDecimal.TEN)
-                .rate(BigDecimal.ONE)
-                .isInsuranceEnabled(true)
-                .isSalaryClient(true);
 
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String offerJson = ow.writeValueAsString(loanOfferDTO);
+        String applyOfferRequest = String.join("", Files.readAllLines(Path.of("src/test/resources/apply-offer-request.json")));
 
         stubFor(WireMock.put(urlMatching("/deal/offer"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())));
 
         mockMvc.perform(MockMvcRequestBuilders.put("/application/offer")
-                        .content(offerJson)
+                        .content(applyOfferRequest)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

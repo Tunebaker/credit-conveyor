@@ -20,7 +20,7 @@ class LoanOfferDTOTest {
                 .totalAmount(BigDecimal.ONE)
                 .term(6)
                 .build();
-        LoanOfferDTO dto2 = LoanOfferDTO.builder()
+        LoanOfferDTO dto2 = new LoanOfferDTO()
                 .applicationId(1L)
                 .isInsuranceEnabled(true)
                 .isSalaryClient(true)
@@ -28,8 +28,7 @@ class LoanOfferDTOTest {
                 .monthlyPayment(BigDecimal.ONE)
                 .requestedAmount(BigDecimal.ONE)
                 .totalAmount(BigDecimal.ONE)
-                .term(6)
-                .build();
+                .term(6);
         assertEquals(dto2, dto1);
     }
 }
