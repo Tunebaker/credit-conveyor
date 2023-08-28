@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -29,7 +31,9 @@ public class ClientEntity {
     private String middleName;
     private LocalDate birthDate;
     private String email;
+    @Enumerated(EnumType.STRING)
     private Gender gender;
+    @Enumerated(EnumType.STRING)
     private MaritalStatus maritalStatus;
     private Integer dependentAmount;
     @Type(type = "io.hypersistence.utils.hibernate.type.json.JsonBinaryType")

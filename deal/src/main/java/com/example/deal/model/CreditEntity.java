@@ -6,7 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -30,5 +36,6 @@ public class CreditEntity {
     private List<PaymentScheduleElement> paymentSchedule;
     private Boolean insuranceEnable;
     private Boolean salaryClient;
+    @Enumerated(EnumType.STRING)
     private CreditStatus creditStatus;
 }

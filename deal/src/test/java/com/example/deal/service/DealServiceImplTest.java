@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.APPROVED;
@@ -121,7 +122,7 @@ class DealServiceImplTest {
                 .clientId(2L)
                 .applicationId(3L)
                 .status(APPROVED)
-                .signDate(LocalDate.of(2023, 2, 28))
+                .signDate(LocalDateTime.now())
                 .appliedOffer(new LoanOfferDTO())
                 .build();
         ClientEntity client = ClientEntity.builder()
