@@ -30,8 +30,6 @@ import static com.example.conveyor.model.ScoringDataDTO.MaritalStatusEnum.MARRIE
 @Slf4j
 public class ConveyorServiceImpl implements ConveyorService {
 
-    private final ScoringService scoringService;
-
     private static final Double BASE_RATE = 0.3;
     private static final MathContext INTERNAL_MATH_CONTEXT = MathContext.DECIMAL64;
     private static final Double NO_INSURANCE_COST_FACTOR = 0.005;
@@ -47,9 +45,11 @@ public class ConveyorServiceImpl implements ConveyorService {
     private static final Integer MAX_DEPENDENT_AMOUNT = 1;
     private static final BigDecimal NON_BINARY_RATE_TERM = BigDecimal.valueOf(0.03);
     private static final BigDecimal MIDDLE_AGE_RATE_TERM = BigDecimal.valueOf(-0.03);
+    private final ScoringService scoringService;
+
 
     public List<LoanOfferDTO> composeLoanOfferList(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        log.info("Получена заявка на кредит {}", loanApplicationRequestDTO);
+        log.info("Получена заявка на кредит: {}", loanApplicationRequestDTO);
         Map<String, String> validationErrors = scoringService.preScore(loanApplicationRequestDTO);
         if (validationErrors.size() != 0) {
             log.warn("Ошибка валидации: {}", validationErrors);
@@ -63,7 +63,7 @@ public class ConveyorServiceImpl implements ConveyorService {
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId++, true, false));
         loanOfferDTOs.add(getLoanOffer(loanApplicationRequestDTO, applicationId, true, true));
         loanOfferDTOs.sort(Comparator.comparing(LoanOfferDTO::getRate).reversed());
-        log.info("Предложения по кредиту : {}", loanOfferDTOs);
+        log.info("Предложения по кредиту: {}", loanOfferDTOs);
         return loanOfferDTOs;
     }
 
@@ -92,12 +92,12 @@ public class ConveyorServiceImpl implements ConveyorService {
                 .isSalaryClient(scoringDataDTO.getIsSalaryClient())
                 .paymentSchedule(paymentSchedule)
                 .build();
-        log.info("Одобрен кредит : {}", creditDTO);
+        log.info("Одобрен кредит: {}", creditDTO);
         return creditDTO;
     }
 
     private BigDecimal calculateMonthlyPayment(BigDecimal rate, Integer term, BigDecimal amount) {
-        log.info("Расчёт месячного платежа по ставке {}, сроку {} месяцев и сумме кредита {} ", rate, term, amount);
+        log.info("Расчёт месячного платежа по ставке {}, сроку {} месяцев и сумме кредита {}", rate, term, amount);
         BigDecimal monthlyRate = rate.divide(new BigDecimal(12), INTERNAL_MATH_CONTEXT);
         BigDecimal annuityRatio = (BigDecimal.ONE.add(monthlyRate)).pow(term).multiply(monthlyRate)
                 .divide((BigDecimal.ONE.add(monthlyRate)).pow(term).subtract(BigDecimal.ONE), INTERNAL_MATH_CONTEXT);
@@ -134,25 +134,26 @@ public class ConveyorServiceImpl implements ConveyorService {
 
         if (scoringDataDTO.getEmployment().getEmploymentStatus().equals(SELF_EMPLOYED)) {
             rateAdditional = rateAdditional.add(SELF_EMPLOYED_RATE_TERM);
-        }
-        if (scoringDataDTO.getEmployment().getEmploymentStatus().equals(BUSINESS_OWNER)) {
+        } else if (scoringDataDTO.getEmployment().getEmploymentStatus().equals(BUSINESS_OWNER)) {
             rateAdditional = rateAdditional.add(BUSINESS_OWNER_RATE_TERM);
         }
+
         if (scoringDataDTO.getEmployment().getPosition().equals(MIDDLE_MANAGER)) {
             rateAdditional = rateAdditional.add(MIDDLE_MANAGER_RATE_TERM);
-        }
-        if (scoringDataDTO.getEmployment().getPosition().equals(TOP_MANAGER)) {
+        } else if (scoringDataDTO.getEmployment().getPosition().equals(TOP_MANAGER)) {
             rateAdditional = rateAdditional.add(TOP_MANAGER_RATE_TERM);
         }
+
         if (scoringDataDTO.getMaritalStatus().equals(MARRIED)) {
             rateAdditional = rateAdditional.add(MARRIED_RATE_TERM);
+        } else if (scoringDataDTO.getMaritalStatus().equals(DIVORCED)) {
+            rateAdditional = rateAdditional.add(DIVORCED_RATE_TERM);
         }
+
         if (scoringDataDTO.getDependentAmount() > MAX_DEPENDENT_AMOUNT) {
             rateAdditional = rateAdditional.add(MANY_DEPENDENT_RATE_TERM);
         }
-        if (scoringDataDTO.getMaritalStatus().equals(DIVORCED)) {
-            rateAdditional = rateAdditional.add(DIVORCED_RATE_TERM);
-        }
+
         if (scoringDataDTO.getGender().equals(NON_BINARY)) {
             rateAdditional = rateAdditional.add(NON_BINARY_RATE_TERM);
         } else if (scoringDataDTO.getBirthdate().isBefore(LocalDate.now().minusYears(55)) &&

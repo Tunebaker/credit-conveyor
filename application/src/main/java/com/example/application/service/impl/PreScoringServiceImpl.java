@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@AllArgsConstructor
 @Slf4j
 public class PreScoringServiceImpl implements PreScoringService {
     private static final String EMAIL_PATTERN = "[\\w\\.]{2,50}@[\\w\\.]{2,20}";
