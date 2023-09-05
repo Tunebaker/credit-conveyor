@@ -27,7 +27,7 @@
             <column name="sign_date" type="timestamp">
                 <constraints nullable="true" unique="false"/>
             </column>
-            <column name="ses_code" type="varchar">
+            <column name="ses_code" type="int">
                 <constraints nullable="true" unique="false"/>
             </column>
             <column name="status_history" type="jsonb">

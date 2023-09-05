@@ -1,5 +1,6 @@
 package com.example.dossier;
 
+import com.example.dossier.service.EmailSenderService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

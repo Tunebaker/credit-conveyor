@@ -3,17 +3,20 @@ package com.example.deal.service;
 import com.example.deal.model.ApplicationEntity;
 import com.example.deal.model.ClientEntity;
 import com.example.deal.model.CreditEntity;
+import com.example.deal.model.EmailMessage;
 import com.example.deal.model.FinishRegistrationRequestDTO;
 import com.example.deal.model.Gender;
 import com.example.deal.model.LoanApplicationRequestDTO;
 import com.example.deal.model.LoanOfferDTO;
 import com.example.deal.model.MaritalStatus;
 import com.example.deal.model.Passport;
+import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.impl.DealServiceImpl;
 import com.example.deal.service.client.FeignConveyorService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +41,8 @@ import static org.mockito.Mockito.when;
 class DealServiceImplTest {
     @InjectMocks
     DealServiceImpl dealService;
+    @Mock
+    DocumentService documentService;
     @Mock
     ClientRepository clientRepository;
     @Mock
@@ -93,8 +98,11 @@ class DealServiceImplTest {
 
     @Test
     void applyOfferTest() {
+        ClientEntity client = new ClientEntity();
+        client.setEmail("qwe@rty.ru");
 
         when(applicationRepository.findById(any())).thenReturn(Optional.of(new ApplicationEntity()));
+        when(clientRepository.findById(any())).thenReturn(Optional.of(client));
         dealService.applyOffer(LoanOfferDTO.builder()
                         .isInsuranceEnabled(true)
                         .isSalaryClient(true)
@@ -109,6 +117,9 @@ class DealServiceImplTest {
         ApplicationEntity capturedArgument = applicationArgumentCaptor.getValue();
         assertEquals(APPROVED, capturedArgument.getStatus());
         verify(applicationRepository, times(1)).findById(any());
+
+        verify(documentService, times(1)).sendFinishRegistrationRequest(any());
+
     }
 
     @Test

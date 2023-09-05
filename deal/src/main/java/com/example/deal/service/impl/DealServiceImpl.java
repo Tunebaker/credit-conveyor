@@ -3,19 +3,12 @@ package com.example.deal.service.impl;
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataDTOMapper;
-import com.example.deal.model.ApplicationEntity;
-import com.example.deal.model.ApplicationStatusHistoryDTO;
-import com.example.deal.model.ClientEntity;
-import com.example.deal.model.CreditDTO;
-import com.example.deal.model.CreditEntity;
-import com.example.deal.model.FinishRegistrationRequestDTO;
-import com.example.deal.model.LoanApplicationRequestDTO;
-import com.example.deal.model.LoanOfferDTO;
-import com.example.deal.model.ScoringDataDTO;
+import com.example.deal.model.*;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DealService;
+import com.example.deal.service.DocumentService;
 import com.example.deal.service.client.FeignConveyorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +21,7 @@ import java.util.List;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.ChangeTypeEnum.AUTOMATIC;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.APPROVED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_APPROVED;
+import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_DENIED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREAPPROVAL;
 
 @Slf4j
@@ -39,10 +33,11 @@ public class DealServiceImpl implements DealService {
     private final ClientRepository clientRepository;
     private final CreditRepository creditRepository;
     private final FeignConveyorService feignConveyorService;
+    private final DocumentService documentService;
 
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        log.info("Получен запрос на расчёт возможных условий кредита {} :", loanApplicationRequestDTO);
+        log.info("Получен запрос на расчёт возможных условий кредита: {}", loanApplicationRequestDTO);
         ClientEntity client = ClientMapper.INSTANCE.loanApplicationRequestToClient(loanApplicationRequestDTO);
         client = clientRepository.save(client);
         log.info("Данные клиента сохранены в БД: {}", client);
@@ -64,7 +59,7 @@ public class DealServiceImpl implements DealService {
 
     @Override
     public void applyOffer(LoanOfferDTO loanOfferDTO) {
-        log.info("Клиент выбрал заявку {}", loanOfferDTO);
+        log.info("Клиент выбрал предложение {}", loanOfferDTO);
         ApplicationEntity application = applicationRepository.findById(loanOfferDTO.getApplicationId()).orElseThrow();
 
         updateStatus(application, APPROVED);
@@ -72,6 +67,17 @@ public class DealServiceImpl implements DealService {
         application.setAppliedOffer(loanOfferDTO);
         applicationRepository.save(application);
         log.info("Заявка сохранена в БД: {}", application);
+
+        ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
+        String email = client.getEmail();
+        EmailMessage message = EmailMessage.builder()
+                .address(email)
+                .theme(Theme.FINISH_REGISTRATION)
+                .applicationId(application.getApplicationId())
+                .build();
+        log.info("сформирован запрос на отправку письма о необходимости завершения регистрации: {}", message);
+
+        documentService.sendFinishRegistrationRequest(message);
     }
 
     @Override
@@ -86,7 +92,27 @@ public class DealServiceImpl implements DealService {
         scoringDataDTO = mapper.clientEntityToScoringDataDTOUpdate(scoringDataDTO, client);
         scoringDataDTO = mapper.finishRegistrationRequestToScoringDataUpdate(scoringDataDTO, finishRegistrationRequestDTO);
 
-        CreditDTO creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
+        CreditDTO creditDTO;
+
+        try {
+            creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
+        } catch (Exception e) {
+            log.warn("В выдаче кредита отказано по причине(-ам): " + e.getMessage() );
+
+            EmailMessage message = EmailMessage.builder()
+                    .applicationId(applicationId)
+                    .theme(Theme.APPLICATION_DENIED)
+                    .address(client.getEmail())
+                    .build();
+            documentService.sendApplicationDeniedRequest(message);
+            log.info("сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
+
+            applicationRepository.save(updateStatus(application, CC_DENIED));
+            log.info("Статус заявки установлен в CC_DENIED");
+
+            throw new RuntimeException(e);
+        }
+
         log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
 
         CreditEntity credit = CreditMapper.INSTANCE.creditDTOToCredit(creditDTO);
@@ -104,9 +130,17 @@ public class DealServiceImpl implements DealService {
         clientRepository.save(updatedClient);
         log.info("Данные о клиенте обновлены в БД: {}", updatedClient);
 
+        EmailMessage message = EmailMessage.builder()
+                .address(updatedClient.getEmail())
+                .theme(Theme.CREATE_DOCUMENTS)
+                .applicationId(applicationId)
+                .build();
+        documentService.sendCreateDocumentRequest(message);
+        log.info("сформирован запрос на отправку письма о запросе на создание документов: {}", message);
+
     }
 
-    private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
+    public static ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
         log.info("Для заявки запрошено изменение статуса на {} ", status);
         if (application.getStatusHistory() == null) {
             application.setStatusHistory(new ArrayList<>());
