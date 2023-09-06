@@ -1,11 +1,13 @@
 package com.example.deal.service.impl;
 
+import com.example.deal.config.KafkaConfig;
 import com.example.deal.exception.SesCodeException;
 import com.example.deal.model.ApplicationEntity;
 import com.example.deal.model.ClientEntity;
 import com.example.deal.model.EmailMessage;
 import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
+import com.example.deal.repository.ApplicationRepositoryCustom;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.KafkaService;
@@ -13,7 +15,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -31,18 +32,20 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
     private final ObjectMapper objectMapper;
-
+    private final KafkaConfig kafkaConfig;
     private String topic;
 
     @Override
     public void sendFinishRegistrationRequest(EmailMessage message) {
-        kafkaService.send(getMessageJson(message), "finish-registration");
+        topic = kafkaConfig.getFinishRegistrationTopic();
+        kafkaService.send(getMessageJson(message), topic);
         log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
     }
 
     @Override
     public void sendCreateDocumentRequest(EmailMessage message) {
-        kafkaService.send(getMessageJson(message), "create-documents");
+        topic = kafkaConfig.getCreateDocumentsTopic();
+        kafkaService.send(getMessageJson(message), topic);
         log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
     }
 
@@ -50,10 +53,10 @@ public class DocumentServiceImpl implements DocumentService {
     public void sendSendDocumentRequest(Long applicationId) {
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
         ApplicationEntity updatedApplication = DealServiceImpl.updateStatus(application, PREPARE_DOCUMENTS);
-        log.info("статус заявки  id={} изменен на: {}", applicationId, updatedApplication.getStatus());
+        log.info("Статус заявки  id={} изменен на: {}", applicationId, updatedApplication.getStatus());
 
         applicationRepository.save(updatedApplication);
-        log.info("обновлённая заявка сохранена в БД");
+        log.info("Обновлённая заявка сохранена в БД");
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
         EmailMessage message = EmailMessage.builder()
@@ -62,7 +65,8 @@ public class DocumentServiceImpl implements DocumentService {
                 .address(client.getEmail())
                 .build();
 
-        kafkaService.send(getMessageJson(message), "send-documents");
+        topic = kafkaConfig.getSendDocumentsTopic();
+        kafkaService.send(getMessageJson(message), topic);
         log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
     }
 
@@ -72,9 +76,9 @@ public class DocumentServiceImpl implements DocumentService {
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
         int sesCode = getRandomSesCode();
         application.setSesCode(sesCode);
-        log.info("для заявки id={} сгенерирован код ПЭП: {}", applicationId, sesCode);
+        log.info("Для заявки id={} сгенерирован код ПЭП: {}", applicationId, sesCode);
         applicationRepository.save(application);
-        log.info("обновлённая заявка сохранена в БД");
+        log.info("Обновлённая заявка сохранена в БД");
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
 
         EmailMessage message = EmailMessage.builder()
@@ -83,25 +87,26 @@ public class DocumentServiceImpl implements DocumentService {
                 .address(client.getEmail())
                 .build();
 
-        kafkaService.send(getMessageJson(message), "send-ses");
+        topic = kafkaConfig.getSendSesTopic();
+        kafkaService.send(getMessageJson(message), topic);
         log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
     }
 
     @Override
     public void sendCreditIssueRequest(Long applicationId, Integer sesCode) {
-        log.info("от клиента получен ses-code: {}", sesCode);
+        log.info("От клиента получен ses-code: {}", sesCode);
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
         if (!application.getSesCode().equals(sesCode)) {
-            throw new SesCodeException("неверный код ПЭП");
+            throw new SesCodeException("Неверный код ПЭП");
         }
 
         DealServiceImpl.updateStatus(application, DOCUMENT_SIGNED);
         applicationRepository.save(application);
-        log.info("обновлённая заявка сохранена в БД");
+        log.info("Обновлённая заявка сохранена в БД");
 
         DealServiceImpl.updateStatus(application, CREDIT_ISSUED);
         applicationRepository.save(application);
-        log.info("обновлённая заявка сохранена в БД");
+        log.info("Обновлённая заявка сохранена в БД");
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
         EmailMessage message = EmailMessage.builder()
@@ -109,13 +114,15 @@ public class DocumentServiceImpl implements DocumentService {
                 .applicationId(applicationId)
                 .address(client.getEmail())
                 .build();
-        kafkaService.send(getMessageJson(message), "credit-issued");
+        topic = kafkaConfig.getCreditIssuedTopic();
+        kafkaService.send(getMessageJson(message), topic);
         log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
     }
 
     @Override
     public void sendApplicationDeniedRequest(EmailMessage message) {
-        kafkaService.send(getMessageJson(message), "application-denied");
+        topic = kafkaConfig.getApplicationDeniedTopic();
+        kafkaService.send(getMessageJson(message), topic);
         log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
     }
 
