@@ -10,6 +10,7 @@ import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.KafkaService;
+import com.example.deal.util.ApplicationStatusUpdater;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void sendSendDocumentRequest(Long applicationId) {
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
-        ApplicationEntity updatedApplication = applicationRepository.updateStatus(application, PREPARE_DOCUMENTS);
+        ApplicationEntity updatedApplication = ApplicationStatusUpdater.updateStatus(application, PREPARE_DOCUMENTS);
         log.info("Статус заявки  id={} изменен на: {}", applicationId, updatedApplication.getStatus());
 
         applicationRepository.save(updatedApplication);
@@ -99,11 +100,11 @@ public class DocumentServiceImpl implements DocumentService {
             throw new SesCodeException("Неверный код ПЭП");
         }
 
-        applicationRepository.updateStatus(application, DOCUMENT_SIGNED);
+        ApplicationStatusUpdater.updateStatus(application, DOCUMENT_SIGNED);
         applicationRepository.save(application);
         log.info("Обновлённая заявка сохранена в БД");
 
-        applicationRepository.updateStatus(application, CREDIT_ISSUED);
+        ApplicationStatusUpdater.updateStatus(application, CREDIT_ISSUED);
         applicationRepository.save(application);
         log.info("Обновлённая заявка сохранена в БД");
 

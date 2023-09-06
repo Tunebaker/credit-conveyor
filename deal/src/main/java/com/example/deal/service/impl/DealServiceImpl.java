@@ -21,6 +21,7 @@ import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DealService;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.client.FeignConveyorService;
+import com.example.deal.util.ApplicationStatusUpdater;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ public class DealServiceImpl implements DealService {
         ApplicationEntity application = ApplicationEntity.builder()
                 .clientId(client.getClientId())
                 .build();
-        applicationRepository.updateStatus(application, PREAPPROVAL);
+        ApplicationStatusUpdater.updateStatus(application, PREAPPROVAL);
 
         applicationRepository.save(application);
         log.info("Заявка сохранена в БД: {}", application);
@@ -73,7 +74,7 @@ public class DealServiceImpl implements DealService {
         log.info("Клиент выбрал предложение: {}", loanOfferDTO);
         ApplicationEntity application = applicationRepository.findById(loanOfferDTO.getApplicationId()).orElseThrow();
 
-        applicationRepository.updateStatus(application, APPROVED);
+        ApplicationStatusUpdater.updateStatus(application, APPROVED);
 
         application.setAppliedOffer(loanOfferDTO);
         applicationRepository.save(application);
@@ -118,7 +119,7 @@ public class DealServiceImpl implements DealService {
             documentService.sendApplicationDeniedRequest(message);
             log.info("Сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
 
-            applicationRepository.save(applicationRepository.updateStatus(application, CC_DENIED));
+            applicationRepository.save(ApplicationStatusUpdater.updateStatus(application, CC_DENIED));
             log.info("Статус заявки установлен: CC_DENIED");
 
             throw new ScoringException(e.getMessage());
@@ -133,7 +134,7 @@ public class DealServiceImpl implements DealService {
 
         application.setCreditId(savedCredit.getCreditId());
         application.setCreationDate(LocalDateTime.now());
-        applicationRepository.save(applicationRepository.updateStatus(application, CC_APPROVED));
+        applicationRepository.save(ApplicationStatusUpdater.updateStatus(application, CC_APPROVED));
         log.info("Заявка сохранена в БД: {}", application);
 
         ClientEntity updatedClient = ClientMapper.INSTANCE.finishRegistrationRequestUpdateFields(client,
