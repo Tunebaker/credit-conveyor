@@ -7,7 +7,6 @@ import com.example.deal.model.ClientEntity;
 import com.example.deal.model.EmailMessage;
 import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
-import com.example.deal.repository.ApplicationRepositoryCustom;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.KafkaService;
@@ -52,7 +51,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void sendSendDocumentRequest(Long applicationId) {
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
-        ApplicationEntity updatedApplication = DealServiceImpl.updateStatus(application, PREPARE_DOCUMENTS);
+        ApplicationEntity updatedApplication = applicationRepository.updateStatus(application, PREPARE_DOCUMENTS);
         log.info("Статус заявки  id={} изменен на: {}", applicationId, updatedApplication.getStatus());
 
         applicationRepository.save(updatedApplication);
@@ -100,11 +99,11 @@ public class DocumentServiceImpl implements DocumentService {
             throw new SesCodeException("Неверный код ПЭП");
         }
 
-        DealServiceImpl.updateStatus(application, DOCUMENT_SIGNED);
+        applicationRepository.updateStatus(application, DOCUMENT_SIGNED);
         applicationRepository.save(application);
         log.info("Обновлённая заявка сохранена в БД");
 
-        DealServiceImpl.updateStatus(application, CREDIT_ISSUED);
+        applicationRepository.updateStatus(application, CREDIT_ISSUED);
         applicationRepository.save(application);
         log.info("Обновлённая заявка сохранена в БД");
 

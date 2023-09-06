@@ -56,7 +56,7 @@ public class DealServiceImpl implements DealService {
         ApplicationEntity application = ApplicationEntity.builder()
                 .clientId(client.getClientId())
                 .build();
-        updateStatus(application, PREAPPROVAL);
+        applicationRepository.updateStatus(application, PREAPPROVAL);
 
         applicationRepository.save(application);
         log.info("Заявка сохранена в БД: {}", application);
@@ -73,7 +73,7 @@ public class DealServiceImpl implements DealService {
         log.info("Клиент выбрал предложение: {}", loanOfferDTO);
         ApplicationEntity application = applicationRepository.findById(loanOfferDTO.getApplicationId()).orElseThrow();
 
-        updateStatus(application, APPROVED);
+        applicationRepository.updateStatus(application, APPROVED);
 
         application.setAppliedOffer(loanOfferDTO);
         applicationRepository.save(application);
@@ -118,7 +118,7 @@ public class DealServiceImpl implements DealService {
             documentService.sendApplicationDeniedRequest(message);
             log.info("Сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
 
-            applicationRepository.save(updateStatus(application, CC_DENIED));
+            applicationRepository.save(applicationRepository.updateStatus(application, CC_DENIED));
             log.info("Статус заявки установлен: CC_DENIED");
 
             throw new ScoringException(e.getMessage());
@@ -133,7 +133,7 @@ public class DealServiceImpl implements DealService {
 
         application.setCreditId(savedCredit.getCreditId());
         application.setCreationDate(LocalDateTime.now());
-        applicationRepository.save(updateStatus(application, CC_APPROVED));
+        applicationRepository.save(applicationRepository.updateStatus(application, CC_APPROVED));
         log.info("Заявка сохранена в БД: {}", application);
 
         ClientEntity updatedClient = ClientMapper.INSTANCE.finishRegistrationRequestUpdateFields(client,
@@ -149,24 +149,5 @@ public class DealServiceImpl implements DealService {
         documentService.sendCreateDocumentRequest(message);
         log.info("Сформирован запрос на отправку письма о запросе на создание документов: {}", message);
 
-    }
-
-    public static ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
-        log.info("Для заявки запрошено изменение статуса на: {} ", status);
-        if (application.getStatusHistory() == null) {
-            application.setStatusHistory(new ArrayList<>());
-            log.info("Для новой заявки создана история статусов");
-        }
-        List<ApplicationStatusHistoryDTO> statusHistory = application.getStatusHistory();
-        ApplicationStatusHistoryDTO applicationStatusHistoryDTO = ApplicationStatusHistoryDTO.builder()
-                .status(status)
-                .time(LocalDateTime.now())
-                .changeType(AUTOMATIC)
-                .build();
-        statusHistory.add(applicationStatusHistoryDTO);
-        application.setStatusHistory(statusHistory);
-        application.setStatus(status);
-        log.info("Статус заявки изменен: {}", status);
-        return application;
     }
 }
