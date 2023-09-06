@@ -1,9 +1,20 @@
 package com.example.deal.service.impl;
 
+import com.example.deal.exception.ScoringException;
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataDTOMapper;
-import com.example.deal.model.*;
+import com.example.deal.model.ApplicationEntity;
+import com.example.deal.model.ApplicationStatusHistoryDTO;
+import com.example.deal.model.ClientEntity;
+import com.example.deal.model.CreditDTO;
+import com.example.deal.model.CreditEntity;
+import com.example.deal.model.EmailMessage;
+import com.example.deal.model.FinishRegistrationRequestDTO;
+import com.example.deal.model.LoanApplicationRequestDTO;
+import com.example.deal.model.LoanOfferDTO;
+import com.example.deal.model.ScoringDataDTO;
+import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
@@ -59,7 +70,7 @@ public class DealServiceImpl implements DealService {
 
     @Override
     public void applyOffer(LoanOfferDTO loanOfferDTO) {
-        log.info("Клиент выбрал предложение {}", loanOfferDTO);
+        log.info("Клиент выбрал предложение: {}", loanOfferDTO);
         ApplicationEntity application = applicationRepository.findById(loanOfferDTO.getApplicationId()).orElseThrow();
 
         updateStatus(application, APPROVED);
@@ -75,7 +86,7 @@ public class DealServiceImpl implements DealService {
                 .theme(Theme.FINISH_REGISTRATION)
                 .applicationId(application.getApplicationId())
                 .build();
-        log.info("сформирован запрос на отправку письма о необходимости завершения регистрации: {}", message);
+        log.info("Сформирован запрос на отправку письма о необходимости завершения регистрации: {}", message);
 
         documentService.sendFinishRegistrationRequest(message);
     }
@@ -105,15 +116,15 @@ public class DealServiceImpl implements DealService {
                     .address(client.getEmail())
                     .build();
             documentService.sendApplicationDeniedRequest(message);
-            log.info("сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
+            log.info("Сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
 
             applicationRepository.save(updateStatus(application, CC_DENIED));
-            log.info("Статус заявки установлен в CC_DENIED");
+            log.info("Статус заявки установлен: CC_DENIED");
 
-            throw new RuntimeException(e);
+            throw new ScoringException(e.getMessage());
         }
 
-        log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
+        log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер: {}", scoringDataDTO);
 
         CreditEntity credit = CreditMapper.INSTANCE.creditDTOToCredit(creditDTO);
         log.info("Рассчитаны параметры кредита: {}", credit);
@@ -136,12 +147,12 @@ public class DealServiceImpl implements DealService {
                 .applicationId(applicationId)
                 .build();
         documentService.sendCreateDocumentRequest(message);
-        log.info("сформирован запрос на отправку письма о запросе на создание документов: {}", message);
+        log.info("Сформирован запрос на отправку письма о запросе на создание документов: {}", message);
 
     }
 
     public static ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
-        log.info("Для заявки запрошено изменение статуса на {} ", status);
+        log.info("Для заявки запрошено изменение статуса на: {} ", status);
         if (application.getStatusHistory() == null) {
             application.setStatusHistory(new ArrayList<>());
             log.info("Для новой заявки создана история статусов");

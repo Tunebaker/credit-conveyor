@@ -1,7 +1,11 @@
 package com.example.conveyor.service.impl;
 
 import com.example.conveyor.exception.ScoringException;
-import com.example.conveyor.model.*;
+import com.example.conveyor.model.CreditDTO;
+import com.example.conveyor.model.LoanApplicationRequestDTO;
+import com.example.conveyor.model.LoanOfferDTO;
+import com.example.conveyor.model.PaymentScheduleElement;
+import com.example.conveyor.model.ScoringDataDTO;
 import com.example.conveyor.service.ConveyorService;
 import com.example.conveyor.service.ScoringService;
 import lombok.RequiredArgsConstructor;
@@ -97,7 +101,7 @@ public class ConveyorServiceImpl implements ConveyorService {
     }
 
     private BigDecimal calculateMonthlyPayment(BigDecimal rate, Integer term, BigDecimal amount) {
-        log.info("Расчёт месячного платежа по ставке {}, сроку {} месяцев и сумме кредита {}", rate, term, amount);
+        log.info("Расчёт месячного платежа по ставке: {}, сроку: {} месяцев и сумме кредита: {}", rate, term, amount);
         BigDecimal monthlyRate = rate.divide(new BigDecimal(12), INTERNAL_MATH_CONTEXT);
         BigDecimal annuityRatio = (BigDecimal.ONE.add(monthlyRate)).pow(term).multiply(monthlyRate)
                 .divide((BigDecimal.ONE.add(monthlyRate)).pow(term).subtract(BigDecimal.ONE), INTERNAL_MATH_CONTEXT);
