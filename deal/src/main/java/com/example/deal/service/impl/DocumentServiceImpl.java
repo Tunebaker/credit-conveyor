@@ -33,20 +33,17 @@ public class DocumentServiceImpl implements DocumentService {
     private final ClientRepository clientRepository;
     private final ObjectMapper objectMapper;
     private final KafkaConfig kafkaConfig;
-    private String topic;
 
     @Override
     public void sendFinishRegistrationRequest(EmailMessage message) {
-        topic = kafkaConfig.getFinishRegistrationTopic();
-        kafkaService.send(getMessageJson(message), topic);
-        log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
+        kafkaService.sendFinishRegistrationRequest(message);
+        log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
     @Override
     public void sendCreateDocumentRequest(EmailMessage message) {
-        topic = kafkaConfig.getCreateDocumentsTopic();
-        kafkaService.send(getMessageJson(message), topic);
-        log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
+        kafkaService.sendCreateDocumentRequest(message);
+        log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
     @Override
@@ -65,9 +62,8 @@ public class DocumentServiceImpl implements DocumentService {
                 .address(client.getEmail())
                 .build();
 
-        topic = kafkaConfig.getSendDocumentsTopic();
-        kafkaService.send(getMessageJson(message), topic);
-        log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
+        kafkaService.sendSendDocumentRequest(message);
+        log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
     @Override
@@ -87,9 +83,8 @@ public class DocumentServiceImpl implements DocumentService {
                 .address(client.getEmail())
                 .build();
 
-        topic = kafkaConfig.getSendSesTopic();
-        kafkaService.send(getMessageJson(message), topic);
-        log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
+        kafkaService.sendSignDocumentRequest(message);
+        log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
     @Override
@@ -114,16 +109,14 @@ public class DocumentServiceImpl implements DocumentService {
                 .applicationId(applicationId)
                 .address(client.getEmail())
                 .build();
-        topic = kafkaConfig.getCreditIssuedTopic();
-        kafkaService.send(getMessageJson(message), topic);
-        log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
+        kafkaService.sendCreditIssueRequest(message);
+        log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
     @Override
     public void sendApplicationDeniedRequest(EmailMessage message) {
-        topic = kafkaConfig.getApplicationDeniedTopic();
-        kafkaService.send(getMessageJson(message), topic);
-        log.info("Сообщение EmailMessage сериализовано для отправки в Kafka: {}", message);
+        kafkaService.sendApplicationDeniedRequest(message);
+        log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
     private String getMessageJson(EmailMessage message) {
