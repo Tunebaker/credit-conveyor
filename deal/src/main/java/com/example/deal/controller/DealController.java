@@ -5,6 +5,7 @@ import com.example.deal.model.FinishRegistrationRequestDTO;
 import com.example.deal.model.LoanApplicationRequestDTO;
 import com.example.deal.model.LoanOfferDTO;
 import com.example.deal.service.DealService;
+import com.example.deal.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,4 +34,5 @@ public class DealController implements DealApi {
         dealService.calculateCredit(finishRegistrationRequestDTO, applicationId);
         return ResponseEntity.ok().build();
     }
+
 }

@@ -35,6 +35,7 @@ public class ApplicationEntity {
     @Type(type = "io.hypersistence.utils.hibernate.type.json.JsonBinaryType")
     private LoanOfferDTO appliedOffer;
     private LocalDateTime signDate;
+    private Integer sesCode;
     @Type(type = "io.hypersistence.utils.hibernate.type.json.JsonBinaryType")
     private List<ApplicationStatusHistoryDTO> statusHistory;
 

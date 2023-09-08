@@ -8,7 +8,7 @@ import com.example.conveyor.model.ScoringDataDTO;
 import com.example.conveyor.service.ConveyorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 

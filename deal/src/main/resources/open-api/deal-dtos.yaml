@@ -12,6 +12,8 @@ servers:
 tags:
   - name: deal
     description: Микросервис Сделка
+  - name: documents
+    description: Операции с документами клиента
 
 paths:
   /deal/application:
@@ -79,6 +81,77 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/FinishRegistrationRequestDTO'
+      responses:
+        default:
+          description: Successful operation
+        '400':
+          description: Invalid input
+
+  /deal/document/{applicationId}/send:
+    put:
+      tags:
+        - documents
+      summary: запрос на отправку документов
+      operationId: sendDocuments
+      description: запрос на отправку документов
+      parameters:
+        - name: applicationId
+          in: path
+          description: applicationId идентификационный номер заявки
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          description: Successful operation
+        '400':
+          description: Invalid input
+
+  /deal/document/{applicationId}/sign:
+    put:
+      tags:
+        - documents
+      summary: запрос на подписание документов
+      operationId: signDocuments
+      description: запрос на подписание документов
+      parameters:
+        - name: applicationId
+          in: path
+          description: applicationId идентификационный номер заявки
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          description: Successful operation
+        '400':
+          description: Invalid input
+
+  /deal/document/{applicationId}/code:
+    put:
+      tags:
+        - documents
+      summary: подписание документов
+      operationId: verifySesCode
+      description: подписание документов
+      parameters:
+        - name: applicationId
+          in: path
+          description: applicationId идентификационный номер заявки
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: ses-code
+          in: header
+          description: код ПЭП
+          required: true
+          schema:
+            type: integer
+            format: int32
+
       responses:
         default:
           description: Successful operation
@@ -426,6 +499,21 @@ components:
               MANUAL ]
           example: AUTOMATIC
 
+    EmailMessage:
+      type: object
+      description: Email сообщение клиенту
+      properties:
+        address:
+          type: string
+          description: Email адрес клиента
+          format: string
+        theme:
+          $ref: '#/components/schemas/Theme'
+        applicationId:
+          type: integer
+          description: applicationId идентификационный номер заявки
+          format: int64
+
     Gender:
       type: string
       description: Пол
@@ -451,5 +539,17 @@ components:
         [ CALCULATED,
           ISSUED ]
       example: CALCULATED
+
+    Theme:
+      type: string
+      description: Тема письма
+      enum:
+        [ FINISH_REGISTRATION,
+          CREATE_DOCUMENTS,
+          SEND_DOCUMENTS,
+          SEND_SES,
+          CREDIT_ISSUED,
+          APPLICATION_DENIED ]
+      example: FINISH_REGISTRATION
 
 
