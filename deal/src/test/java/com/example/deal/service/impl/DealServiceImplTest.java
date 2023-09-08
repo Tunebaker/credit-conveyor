@@ -1,22 +1,20 @@
-package com.example.deal.service;
+package com.example.deal.service.impl;
 
+import com.example.deal.exception.ScoringException;
 import com.example.deal.model.ApplicationEntity;
 import com.example.deal.model.ClientEntity;
 import com.example.deal.model.CreditEntity;
-import com.example.deal.model.EmailMessage;
 import com.example.deal.model.FinishRegistrationRequestDTO;
 import com.example.deal.model.Gender;
 import com.example.deal.model.LoanApplicationRequestDTO;
 import com.example.deal.model.LoanOfferDTO;
 import com.example.deal.model.MaritalStatus;
 import com.example.deal.model.Passport;
-import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
-import com.example.deal.service.impl.DealServiceImpl;
+import com.example.deal.service.DocumentService;
 import com.example.deal.service.client.FeignConveyorService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,6 +30,7 @@ import java.util.Optional;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.APPROVED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREAPPROVAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -160,6 +159,22 @@ class DealServiceImplTest {
 
 
         verify(feignConveyorService, times(1)).calculateCredit(any());
+    }
+
+    @Test
+    public void calculateCreditTest_WithScoringException(){
+        FinishRegistrationRequestDTO requestDTO = FinishRegistrationRequestDTO.builder()
+                .build();
+        ApplicationEntity applicationEntity = ApplicationEntity.builder()
+                .appliedOffer(new LoanOfferDTO())
+                .build();
+        ClientEntity client = ClientEntity.builder().build();
+        when(applicationRepository.findById(any())).thenReturn(Optional.ofNullable(applicationEntity));
+        when(clientRepository.findById(any())).thenReturn(Optional.of(client));
+        when(feignConveyorService.calculateCredit(any())).thenThrow(RuntimeException.class);
+
+        assertThrows(ScoringException.class, () -> dealService.calculateCredit(requestDTO, 10L));
+
     }
 
 }
