@@ -5,7 +5,6 @@ import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataDTOMapper;
 import com.example.deal.model.ApplicationEntity;
-import com.example.deal.model.ApplicationStatusHistoryDTO;
 import com.example.deal.model.ClientEntity;
 import com.example.deal.model.CreditDTO;
 import com.example.deal.model.CreditEntity;
@@ -27,14 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.deal.model.ApplicationStatusHistoryDTO.ChangeTypeEnum.AUTOMATIC;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.APPROVED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_APPROVED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_DENIED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREAPPROVAL;
+import static com.example.deal.model.Theme.APPLICATION_DENIED;
+import static com.example.deal.model.Theme.CREATE_DOCUMENTS;
+import static com.example.deal.model.Theme.FINISH_REGISTRATION;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -81,12 +81,7 @@ public class DealServiceImpl implements DealService {
         log.info("Заявка сохранена в БД: {}", application);
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
-        String email = client.getEmail();
-        EmailMessage message = EmailMessage.builder()
-                .address(email)
-                .theme(Theme.FINISH_REGISTRATION)
-                .applicationId(application.getApplicationId())
-                .build();
+        EmailMessage message = createEmailMessage(client.getEmail(), FINISH_REGISTRATION, application.getApplicationId());
         log.info("Сформирован запрос на отправку письма о необходимости завершения регистрации: {}", message);
 
         documentService.sendFinishRegistrationRequest(message);
@@ -111,11 +106,7 @@ public class DealServiceImpl implements DealService {
         } catch (Exception e) {
             log.warn("В выдаче кредита отказано по причине(-ам): " + e.getMessage() );
 
-            EmailMessage message = EmailMessage.builder()
-                    .applicationId(applicationId)
-                    .theme(Theme.APPLICATION_DENIED)
-                    .address(client.getEmail())
-                    .build();
+            EmailMessage message = createEmailMessage(client.getEmail(), APPLICATION_DENIED, applicationId);
             documentService.sendApplicationDeniedRequest(message);
             log.info("Сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
 
@@ -142,13 +133,17 @@ public class DealServiceImpl implements DealService {
         clientRepository.save(updatedClient);
         log.info("Данные о клиенте обновлены в БД: {}", updatedClient);
 
-        EmailMessage message = EmailMessage.builder()
-                .address(updatedClient.getEmail())
-                .theme(Theme.CREATE_DOCUMENTS)
-                .applicationId(applicationId)
-                .build();
+        EmailMessage message = createEmailMessage(updatedClient.getEmail(), CREATE_DOCUMENTS, applicationId);
         documentService.sendCreateDocumentRequest(message);
         log.info("Сформирован запрос на отправку письма о запросе на создание документов: {}", message);
 
+    }
+
+    private EmailMessage createEmailMessage(String address, Theme theme, Long applicationId){
+        return EmailMessage.builder()
+                .address(address)
+                .theme(theme)
+                .applicationId(applicationId)
+                .build();
     }
 }
