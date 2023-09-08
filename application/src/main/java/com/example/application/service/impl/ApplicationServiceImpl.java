@@ -19,17 +19,17 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final PreScoringServiceImpl preScoringService;
 
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        log.info("прескоринг запроса: {}", loanApplicationRequestDTO);
+        log.info("Прескоринг запроса: {}", loanApplicationRequestDTO);
         preScoringService.preScore(loanApplicationRequestDTO);
 
-        log.info("запрос к МС deal с параметрами: {}", loanApplicationRequestDTO);
+        log.info("Запрос к МС deal с параметрами: {}", loanApplicationRequestDTO);
         List<LoanOfferDTO> offers = feignDealService.createApplication(loanApplicationRequestDTO);
-        log.info("получен ответ от МС deal: {}", offers);
+        log.info("Получен ответ от МС deal: {}", offers);
         return offers;
     }
 
     public void applyOffer(LoanOfferDTO loanOfferDTO) {
-        log.info("выбранное клиентом предложение направляется в МС deal: {}", loanOfferDTO);
+        log.info("Выбранное клиентом предложение направляется в МС deal: {}", loanOfferDTO);
         feignDealService.applyOffer(loanOfferDTO);
     }
 }

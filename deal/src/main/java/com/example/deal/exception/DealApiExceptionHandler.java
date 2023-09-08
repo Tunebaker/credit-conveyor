@@ -15,4 +15,11 @@ public class DealApiExceptionHandler {
                 .status(HttpStatus.valueOf(500))
                 .body(new ErrorMessage(exception.getMessage()));
     }
+
+    @ExceptionHandler(SesCodeException.class)
+    public ResponseEntity<ErrorMessage> handleException(SesCodeException exception) {
+        return ResponseEntity
+                .status(HttpStatus.valueOf(500))
+                .body(new ErrorMessage(exception.getMessage()));
+    }
 }

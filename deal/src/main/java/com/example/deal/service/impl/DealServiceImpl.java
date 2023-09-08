@@ -1,34 +1,40 @@
 package com.example.deal.service.impl;
 
+import com.example.deal.exception.ScoringException;
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataDTOMapper;
 import com.example.deal.model.ApplicationEntity;
-import com.example.deal.model.ApplicationStatusHistoryDTO;
 import com.example.deal.model.ClientEntity;
 import com.example.deal.model.CreditDTO;
 import com.example.deal.model.CreditEntity;
+import com.example.deal.model.EmailMessage;
 import com.example.deal.model.FinishRegistrationRequestDTO;
 import com.example.deal.model.LoanApplicationRequestDTO;
 import com.example.deal.model.LoanOfferDTO;
 import com.example.deal.model.ScoringDataDTO;
+import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DealService;
+import com.example.deal.service.DocumentService;
 import com.example.deal.service.client.FeignConveyorService;
+import com.example.deal.util.ApplicationStatusUpdater;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.deal.model.ApplicationStatusHistoryDTO.ChangeTypeEnum.AUTOMATIC;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.APPROVED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_APPROVED;
+import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CC_DENIED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREAPPROVAL;
+import static com.example.deal.model.Theme.APPLICATION_DENIED;
+import static com.example.deal.model.Theme.CREATE_DOCUMENTS;
+import static com.example.deal.model.Theme.FINISH_REGISTRATION;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,10 +45,11 @@ public class DealServiceImpl implements DealService {
     private final ClientRepository clientRepository;
     private final CreditRepository creditRepository;
     private final FeignConveyorService feignConveyorService;
+    private final DocumentService documentService;
 
     @Override
     public List<LoanOfferDTO> createApplication(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        log.info("Получен запрос на расчёт возможных условий кредита {} :", loanApplicationRequestDTO);
+        log.info("Получен запрос на расчёт возможных условий кредита: {}", loanApplicationRequestDTO);
         ClientEntity client = ClientMapper.INSTANCE.loanApplicationRequestToClient(loanApplicationRequestDTO);
         client = clientRepository.save(client);
         log.info("Данные клиента сохранены в БД: {}", client);
@@ -50,7 +57,7 @@ public class DealServiceImpl implements DealService {
         ApplicationEntity application = ApplicationEntity.builder()
                 .clientId(client.getClientId())
                 .build();
-        updateStatus(application, PREAPPROVAL);
+        ApplicationStatusUpdater.updateStatus(application, PREAPPROVAL);
 
         applicationRepository.save(application);
         log.info("Заявка сохранена в БД: {}", application);
@@ -64,14 +71,20 @@ public class DealServiceImpl implements DealService {
 
     @Override
     public void applyOffer(LoanOfferDTO loanOfferDTO) {
-        log.info("Клиент выбрал заявку {}", loanOfferDTO);
+        log.info("Клиент выбрал предложение: {}", loanOfferDTO);
         ApplicationEntity application = applicationRepository.findById(loanOfferDTO.getApplicationId()).orElseThrow();
 
-        updateStatus(application, APPROVED);
+        ApplicationStatusUpdater.updateStatus(application, APPROVED);
 
         application.setAppliedOffer(loanOfferDTO);
         applicationRepository.save(application);
         log.info("Заявка сохранена в БД: {}", application);
+
+        ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
+        EmailMessage message = createEmailMessage(client.getEmail(), FINISH_REGISTRATION, application.getApplicationId());
+        log.info("Сформирован запрос на отправку письма о необходимости завершения регистрации: {}", message);
+
+        documentService.sendFinishRegistrationRequest(message);
     }
 
     @Override
@@ -86,8 +99,24 @@ public class DealServiceImpl implements DealService {
         scoringDataDTO = mapper.clientEntityToScoringDataDTOUpdate(scoringDataDTO, client);
         scoringDataDTO = mapper.finishRegistrationRequestToScoringDataUpdate(scoringDataDTO, finishRegistrationRequestDTO);
 
-        CreditDTO creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
-        log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер {}", scoringDataDTO);
+        CreditDTO creditDTO;
+
+        try {
+            creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
+        } catch (Exception e) {
+            log.warn("В выдаче кредита отказано по причине(-ам): " + e.getMessage() );
+
+            EmailMessage message = createEmailMessage(client.getEmail(), APPLICATION_DENIED, applicationId);
+            documentService.sendApplicationDeniedRequest(message);
+            log.info("Сформирован запрос на отправку письма об отказе в выдаче кредита: {}", message);
+
+            applicationRepository.save(ApplicationStatusUpdater.updateStatus(application, CC_DENIED));
+            log.info("Статус заявки установлен: CC_DENIED");
+
+            throw new ScoringException(e.getMessage());
+        }
+
+        log.info("Сформированный запрос для полного расчета кредита отправлен в МС Конвейер: {}", scoringDataDTO);
 
         CreditEntity credit = CreditMapper.INSTANCE.creditDTOToCredit(creditDTO);
         log.info("Рассчитаны параметры кредита: {}", credit);
@@ -96,7 +125,7 @@ public class DealServiceImpl implements DealService {
 
         application.setCreditId(savedCredit.getCreditId());
         application.setCreationDate(LocalDateTime.now());
-        applicationRepository.save(updateStatus(application, CC_APPROVED));
+        applicationRepository.save(ApplicationStatusUpdater.updateStatus(application, CC_APPROVED));
         log.info("Заявка сохранена в БД: {}", application);
 
         ClientEntity updatedClient = ClientMapper.INSTANCE.finishRegistrationRequestUpdateFields(client,
@@ -104,24 +133,17 @@ public class DealServiceImpl implements DealService {
         clientRepository.save(updatedClient);
         log.info("Данные о клиенте обновлены в БД: {}", updatedClient);
 
+        EmailMessage message = createEmailMessage(updatedClient.getEmail(), CREATE_DOCUMENTS, applicationId);
+        documentService.sendCreateDocumentRequest(message);
+        log.info("Сформирован запрос на отправку письма о запросе на создание документов: {}", message);
+
     }
 
-    private ApplicationEntity updateStatus(ApplicationEntity application, ApplicationStatusHistoryDTO.StatusEnum status) {
-        log.info("Для заявки запрошено изменение статуса на {} ", status);
-        if (application.getStatusHistory() == null) {
-            application.setStatusHistory(new ArrayList<>());
-            log.info("Для новой заявки создана история статусов");
-        }
-        List<ApplicationStatusHistoryDTO> statusHistory = application.getStatusHistory();
-        ApplicationStatusHistoryDTO applicationStatusHistoryDTO = ApplicationStatusHistoryDTO.builder()
-                .status(status)
-                .time(LocalDateTime.now())
-                .changeType(AUTOMATIC)
+    private EmailMessage createEmailMessage(String address, Theme theme, Long applicationId){
+        return EmailMessage.builder()
+                .address(address)
+                .theme(theme)
+                .applicationId(applicationId)
                 .build();
-        statusHistory.add(applicationStatusHistoryDTO);
-        application.setStatusHistory(statusHistory);
-        application.setStatus(status);
-        log.info("Статус заявки изменен: {}", status);
-        return application;
     }
 }

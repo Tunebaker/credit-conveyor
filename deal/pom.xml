@@ -41,11 +41,6 @@
 			<artifactId>liquibase-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>1.6.7</version>
@@ -84,6 +79,25 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 			<version>3.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -148,6 +162,7 @@
 							</typeMappings>
 							<inputSpec>${project.basedir}/src/main/resources/open-api/deal-dtos.yaml</inputSpec>
 							<configOptions>
+								<useTags>true</useTags>
 								<delegatePattern>false</delegatePattern>
 								<interfaceOnly>true</interfaceOnly>
 								<useBeanValidation>true</useBeanValidation>
