@@ -24,7 +24,7 @@ public class KafkaListenerService {
         EmailMessage emailMessage = getEmailMessageFromJson(messageJson);
         String text = "Уважаемый клиент, завершите Вашу регистрацию по заявке №" + emailMessage.getApplicationId();
         emailSenderService.sendEmail(emailMessage, text);
-        log.info("Клиенту отправлено e-mail сообщение: {} с текстом {}", emailMessage, text);
+        log.info("Клиенту отправлено e-mail сообщение: {} с текстом: {}", emailMessage, text);
     }
 
     @KafkaListener(topics = "create-documents")
@@ -33,7 +33,7 @@ public class KafkaListenerService {
         EmailMessage emailMessage = getEmailMessageFromJson(messageJson);
         String text = "Уважаемый клиент, отправьте запрос для того, чтобы перейти к оформлению документов по заявке №" + emailMessage.getApplicationId();
         emailSenderService.sendEmail(emailMessage, text);
-        log.info("Клиенту отправлено e-mail сообщение: {} с текстом {}", emailMessage, text);
+        log.info("Клиенту отправлено e-mail сообщение: {} с текстом: {}", emailMessage, text);
     }
 
     @KafkaListener(topics = "send-documents")
@@ -42,7 +42,7 @@ public class KafkaListenerService {
         EmailMessage emailMessage = getEmailMessageFromJson(messageJson);
         String text = "Уважаемый клиент, сформированы документы по кредитной заявке №" + emailMessage.getApplicationId();
         emailSenderService.sendEmail(emailMessage, text);
-        log.info("Клиенту отправлено e-mail сообщение: {} с текстом {}", emailMessage, text);
+        log.info("Клиенту отправлено e-mail сообщение: {} с текстом: {}", emailMessage, text);
     }
 
     @KafkaListener(topics = "send-ses")
@@ -51,7 +51,7 @@ public class KafkaListenerService {
         EmailMessage emailMessage = getEmailMessageFromJson(messageJson);
         String text = "Уважаемый клиент, подпишите с помощью SES кода документы по кредитной заявке №" + emailMessage.getApplicationId();
         emailSenderService.sendEmail(emailMessage, text);
-        log.info("Клиенту отправлено e-mail сообщение: {} с текстом {}", emailMessage, text);
+        log.info("Клиенту отправлено e-mail сообщение: {} с текстом: {}", emailMessage, text);
     }
 
     @KafkaListener(topics = "credit-issued")
@@ -60,7 +60,7 @@ public class KafkaListenerService {
         EmailMessage emailMessage = getEmailMessageFromJson(messageJson);
         String text = "Уважаемый клиент, Вам выдан кредит по заявке №" + emailMessage.getApplicationId();
         emailSenderService.sendEmail(emailMessage, text);
-        log.info("Клиенту отправлено e-mail сообщение: {} с текстом {}", emailMessage, text);
+        log.info("Клиенту отправлено e-mail сообщение: {} с текстом: {}", emailMessage, text);
     }
 
     @KafkaListener(topics = "application-denied")
@@ -69,10 +69,10 @@ public class KafkaListenerService {
         EmailMessage emailMessage = getEmailMessageFromJson(messageJson);
         String text = "Уважаемый клиент, Вам отказано в выдаче кредита по заявке №" + emailMessage.getApplicationId();
         emailSenderService.sendEmail(emailMessage, text);
-        log.info("Клиенту отправлено e-mail сообщение: {} с текстом {}", emailMessage, text);
+        log.info("Клиенту отправлено e-mail сообщение: {} с текстом: {}", emailMessage, text);
     }
 
-    public EmailMessage getEmailMessageFromJson(String messageJson) {
+    private EmailMessage getEmailMessageFromJson(String messageJson) {
         EmailMessage emailMessage;
         try {
             emailMessage = objectMapper.readValue(messageJson, EmailMessage.class);
