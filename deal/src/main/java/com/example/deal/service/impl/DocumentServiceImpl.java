@@ -1,6 +1,5 @@
 package com.example.deal.service.impl;
 
-import com.example.deal.config.KafkaConfig;
 import com.example.deal.exception.SesCodeException;
 import com.example.deal.model.ApplicationEntity;
 import com.example.deal.model.ClientEntity;
@@ -11,7 +10,6 @@ import com.example.deal.repository.ClientRepository;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.KafkaService;
 import com.example.deal.util.ApplicationStatusUpdater;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +29,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final KafkaService kafkaService;
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
-    private final ObjectMapper objectMapper;
-    private final KafkaConfig kafkaConfig;
 
     @Override
     public void sendFinishRegistrationRequest(EmailMessage message) {
@@ -56,11 +52,7 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Обновлённая заявка сохранена в БД");
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
-        EmailMessage message = EmailMessage.builder()
-                .theme(Theme.SEND_DOCUMENTS)
-                .applicationId(applicationId)
-                .address(client.getEmail())
-                .build();
+        EmailMessage message = createEmailMessage(Theme.SEND_DOCUMENTS, applicationId, client);
 
         kafkaService.sendSendDocumentRequest(message);
         log.info("Сообщение отправлено в KafkaService: {}", message);
@@ -70,18 +62,15 @@ public class DocumentServiceImpl implements DocumentService {
     public void sendSignDocumentRequest(Long applicationId) {
 
         ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow();
-        int sesCode = getRandomSesCode();
+        Integer sesCode = getRandomSesCode();
         application.setSesCode(sesCode);
         log.info("Для заявки id={} сгенерирован код ПЭП: {}", applicationId, sesCode);
+
         applicationRepository.save(application);
         log.info("Обновлённая заявка сохранена в БД");
-        ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
 
-        EmailMessage message = EmailMessage.builder()
-                .theme(Theme.SEND_SES)
-                .applicationId(applicationId)
-                .address(client.getEmail())
-                .build();
+        ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
+        EmailMessage message = createEmailMessage(Theme.SEND_SES, applicationId, client);
 
         kafkaService.sendSignDocumentRequest(message);
         log.info("Сообщение отправлено в KafkaService: {}", message);
@@ -104,11 +93,7 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Обновлённая заявка сохранена в БД");
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
-        EmailMessage message = EmailMessage.builder()
-                .theme(Theme.CREDIT_ISSUED)
-                .applicationId(applicationId)
-                .address(client.getEmail())
-                .build();
+        EmailMessage message = createEmailMessage(Theme.CREDIT_ISSUED, applicationId, client);
         kafkaService.sendCreditIssueRequest(message);
         log.info("Сообщение отправлено в KafkaService: {}", message);
     }
@@ -119,15 +104,12 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Сообщение отправлено в KafkaService: {}", message);
     }
 
-    private String getMessageJson(EmailMessage message) {
-        String messageJson;
-        try {
-            messageJson = objectMapper.writeValueAsString(message);
-        } catch (JsonProcessingException e) {
-            log.warn("Ошибка преобразования объекта EmailMessage в json: {}", message);
-            throw new SesCodeException(e.getMessage());
-        }
-        return messageJson;
+    private EmailMessage createEmailMessage(Theme theme, Long applicationId, ClientEntity client) {
+        return EmailMessage.builder()
+                .theme(theme)
+                .applicationId(applicationId)
+                .address(client.getEmail())
+                .build();
     }
 
     private Integer getRandomSesCode() {
