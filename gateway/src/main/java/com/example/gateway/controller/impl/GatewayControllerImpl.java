@@ -1,7 +1,9 @@
-package com.example.gateway.controller;
+package com.example.gateway.controller.impl;
 
+import com.example.application.model.FinishRegistrationRequestDTO;
 import com.example.application.model.LoanApplicationRequestDTO;
 import com.example.application.model.LoanOfferDTO;
+import com.example.gateway.controller.GatewayController;
 import com.example.gateway.service.GatewayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +30,8 @@ public class GatewayControllerImpl implements GatewayController {
     }
 
     @Override
-    public ResponseEntity<Void> finishRegistration(Long id) {
-        gatewayService.finishRegistration(id);
+    public ResponseEntity<Void> finishRegistration(Long id, FinishRegistrationRequestDTO dto) {
+        gatewayService.finishRegistration(id, dto);
         return ResponseEntity.ok().build();
     }
 

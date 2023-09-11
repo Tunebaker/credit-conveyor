@@ -11,7 +11,7 @@ public interface GatewayService {
 
     void chooseOneOffer(LoanOfferDTO dto);
 
-    void finishRegistration(FinishRegistrationRequestDTO dto);
+    void finishRegistration(Long id, FinishRegistrationRequestDTO dto);
 
     void createDocumentRequest(Long id);
 
