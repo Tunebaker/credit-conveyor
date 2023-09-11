@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface FeignDealService {
 
     @PutMapping("/deal/calculate/{applicationId}")
-    void calculateCredit(Long applicationId, FinishRegistrationRequestDTO dto);
+    void calculateCredit(@PathVariable Long applicationId, FinishRegistrationRequestDTO dto);
 
     @PutMapping("/deal/document/{applicationId}/send")
     void sendDocuments(@PathVariable Long applicationId);
