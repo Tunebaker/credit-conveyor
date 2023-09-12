@@ -17,5 +17,5 @@ public interface GatewayService {
 
     void signDocumentRequest(Long id);
 
-    void verifySesCodeRequest(Integer sesCode, Long id);
+    void verifySesCodeRequest(Long id, Integer sesCode);
 }

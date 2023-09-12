@@ -19,6 +19,6 @@ public interface FeignDealService {
     void signDocuments(@PathVariable Long applicationId);
 
     @PutMapping("/deal/document/{applicationId}/code")
-    void verifySesCode(@RequestHeader Integer sesCode, @PathVariable Long applicationId);
+    void verifySesCode(@PathVariable Long applicationId, @RequestHeader(name = "ses-code")  Integer sesCode);
 }
 

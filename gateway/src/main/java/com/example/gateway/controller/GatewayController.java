@@ -4,6 +4,7 @@ import com.example.application.model.FinishRegistrationRequestDTO;
 import com.example.application.model.LoanApplicationRequestDTO;
 import com.example.application.model.LoanOfferDTO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -56,7 +57,12 @@ public interface GatewayController {
     @Operation(summary = "5. Запрос на подпись документов", tags = "API-Gateway")
     @PostMapping("/document/{applicationId}/sign")
     ResponseEntity<Void> signDocumentRequest(@PathVariable("applicationId") Long id);
+
     @Operation(summary = "6. Подпись документов полученным кодом ПЭП", tags = "API-Gateway")
     @PostMapping("/document/{applicationId}/sign/code")
-    ResponseEntity<Void> verifySesCodeRequest(@RequestHeader Integer sesCode, @PathVariable("applicationId") Long id);
+    ResponseEntity<Void> verifySesCodeRequest(
+            @Parameter(name = "applicationId", description = "номер заявки", required = true) @PathVariable("applicationId") Long applicationId,
+            @Parameter(name = "ses-code", description = "код ПЭП", required = true) @RequestHeader(value = "ses-code") Integer sesCode
+
+    );
 }

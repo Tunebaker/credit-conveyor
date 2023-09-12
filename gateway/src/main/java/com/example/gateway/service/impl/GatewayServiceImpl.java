@@ -19,6 +19,7 @@ public class GatewayServiceImpl implements GatewayService {
 
     private final FeignApplicationService feignApplicationService;
     private final FeignDealService feignDealService;
+
     @Override
     public List<LoanOfferDTO> createLoanApplication(LoanApplicationRequestDTO dto) {
         log.info("От клиента получен первоначальный запрос на кредит: {}", dto);
@@ -46,14 +47,12 @@ public class GatewayServiceImpl implements GatewayService {
     @Override
     public void signDocumentRequest(Long id) {
         log.info("Получено значение applicationId: {}", id);
-
         feignDealService.signDocuments(id);
     }
 
     @Override
-    public void verifySesCodeRequest(Integer sesCode, Long id) {
-        log.info("Получено значение applicationId: {}", id);
-
-        feignDealService.verifySesCode(sesCode, id);
+    public void verifySesCodeRequest(Long id, Integer sesCode) {
+        log.info("Получено значение applicationId: {}, sesCode: {}", id, sesCode);
+        feignDealService.verifySesCode(id, sesCode);
     }
 }

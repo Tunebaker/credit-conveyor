@@ -48,8 +48,8 @@ public class GatewayControllerImpl implements GatewayController {
     }
 
     @Override
-    public ResponseEntity<Void> verifySesCodeRequest(Integer sesCode, Long id) {
-        gatewayService.verifySesCodeRequest(sesCode, id);
+    public ResponseEntity<Void> verifySesCodeRequest(Long id, Integer sesCode) {
+        gatewayService.verifySesCodeRequest(id, sesCode);
         return ResponseEntity.ok().build();
     }
 }
