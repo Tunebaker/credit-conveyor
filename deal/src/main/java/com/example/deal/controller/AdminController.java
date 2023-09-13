@@ -41,6 +41,14 @@ public class AdminController {
                             @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ErrorMessage.class))
+                    }),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Внутренняя ошибка сервера",
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
                     })
     })
     @GetMapping("/deal/admin/application/{applicationId}")
@@ -61,7 +69,7 @@ public class AdminController {
                     }),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Ошибка поиска заявок в БД",
+                    description = "Внутренняя ошибка сервера",
                     content = {
                             @Content(
                                     mediaType = "application/json",
