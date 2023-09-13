@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.NoSuchElementException;
+
 @RestControllerAdvice
 public class DealApiExceptionHandler {
     @ExceptionHandler(FeignException.class)
@@ -19,7 +21,14 @@ public class DealApiExceptionHandler {
     @ExceptionHandler(SesCodeException.class)
     public ResponseEntity<ErrorMessage> handleException(SesCodeException exception) {
         return ResponseEntity
-                .status(HttpStatus.valueOf(500))
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorMessage> handleException(NoSuchElementException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorMessage(exception.getMessage()));
     }
 }
