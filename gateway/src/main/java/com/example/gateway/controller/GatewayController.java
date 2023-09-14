@@ -93,6 +93,15 @@ public interface GatewayController {
                                     mediaType = "application/json",
                                     array = @ArraySchema(schema = @Schema(implementation = Void.class)))
                     }),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request",
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorAttributes.class))
+                    }
+            ),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = {
                             @Content(
@@ -115,6 +124,15 @@ public interface GatewayController {
                                     mediaType = "application/json",
                                     array = @ArraySchema(schema = @Schema(implementation = Void.class)))
                     }),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request",
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorAttributes.class))
+                    }
+            ),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = {
                             @Content(
@@ -136,6 +154,15 @@ public interface GatewayController {
                                     mediaType = "application/json",
                                     array = @ArraySchema(schema = @Schema(implementation = Void.class)))
                     }),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request",
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorAttributes.class))
+                    }
+            ),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = {
                             @Content(
@@ -157,6 +184,15 @@ public interface GatewayController {
                                     mediaType = "application/json",
                                     array = @ArraySchema(schema = @Schema(implementation = Void.class)))
                     }),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request",
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorAttributes.class))
+                    }
+            ),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = {
                             @Content(
