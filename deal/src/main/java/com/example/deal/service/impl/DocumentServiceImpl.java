@@ -3,10 +3,13 @@ package com.example.deal.service.impl;
 import com.example.deal.exception.SesCodeException;
 import com.example.deal.model.ApplicationEntity;
 import com.example.deal.model.ClientEntity;
+import com.example.deal.model.CreditEntity;
+import com.example.deal.model.CreditStatus;
 import com.example.deal.model.EmailMessage;
 import com.example.deal.model.Theme;
 import com.example.deal.repository.ApplicationRepository;
 import com.example.deal.repository.ClientRepository;
+import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.KafkaService;
 import com.example.deal.util.ApplicationStatusUpdater;
@@ -29,6 +32,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final KafkaService kafkaService;
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
+    private  final CreditRepository creditRepository;
 
     @Override
     public void sendFinishRegistrationRequest(EmailMessage message) {
@@ -91,6 +95,12 @@ public class DocumentServiceImpl implements DocumentService {
         ApplicationStatusUpdater.updateStatus(application, CREDIT_ISSUED);
         applicationRepository.save(application);
         log.info("Обновлённая заявка сохранена в БД");
+
+        CreditEntity credit = creditRepository.findById(application.getCreditId()).orElseThrow();
+        credit.setCreditStatus(CreditStatus.ISSUED);
+        log.info("Для кредита id: {} установлен статус ISSUED", credit.getCreditId());
+        creditRepository.save(credit);
+        log.info("Обновлённый кредит сохранен в БД");
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
         EmailMessage message = createEmailMessage(Theme.CREDIT_ISSUED, applicationId, client);

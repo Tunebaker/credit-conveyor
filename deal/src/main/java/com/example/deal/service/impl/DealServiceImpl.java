@@ -103,7 +103,7 @@ public class DealServiceImpl implements DealService {
 
         try {
             creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
-        } catch (Exception e) {
+        } catch (ScoringException e) {
             log.warn("В выдаче кредита отказано по причине(-ам): " + e.getMessage() );
 
             EmailMessage message = createEmailMessage(client.getEmail(), APPLICATION_DENIED, applicationId);
