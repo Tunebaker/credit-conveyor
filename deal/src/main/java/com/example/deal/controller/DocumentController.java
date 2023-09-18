@@ -1,9 +1,7 @@
 package com.example.deal.controller;
 
-import com.example.deal.api.DealApi;
 import com.example.deal.api.DocumentsApi;
 import com.example.deal.service.DocumentService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
