@@ -1,6 +1,58 @@
-version: '2.1'
+version: '4.0'
 
 services:
+  gateway:
+    image: tnbkr/gateway
+    hostname: gateway
+    container_name: gateway
+    ports:
+      - 8084:8084
+    environment:
+      - APPLICATION_URL=http://application:8082
+      - DEAL_URL=http://deal:8081
+
+  application:
+    image: tnbkr/application
+    hostname: application
+    container_name: application
+    environment:
+      - DEAL_URL=http://deal:8081
+
+  deal:
+    image: tnbkr/deal
+    hostname: deal
+    container_name: deal
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://project-db-1:5432/postgres
+      - CONVEYOR_URL=http://conveyor:8080/conveyor
+#      - KAFKA_BOOTSTRAP_SERVER=kafka:19092
+    depends_on:
+      - project-db-1
+#      - kafka1
+
+  project-db-1:
+    image: postgres:14.7-alpine
+    hostname: project-db-1
+    container_name: project-db-1
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12
+    ports:
+      - "5432:5432"
+
+  conveyor:
+    image: tnbkr/conveyor
+    hostname: conveyor
+    container_name: conveyor
+
+  dossier:
+    image: tnbkr/dossier
+    hostname: dossier
+    container_name: dossier
+    depends_on:
+      - kafka1
+
   zoo1:
     image: confluentinc/cp-zookeeper:7.3.2
     hostname: zoo1
@@ -21,10 +73,11 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:9092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
 
 
 
