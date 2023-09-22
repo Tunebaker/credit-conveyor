@@ -31,18 +31,38 @@ jobs:
 
       - name: 3.1 Build ms deal with Maven
         run: mvn -B package --file ./deal/pom.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4-beta
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 3.2 Build ms dossier with Maven
         run: mvn -B package --file ./dossier/pom.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4-beta
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 3.3 Build ms gateway with Maven
         run: mvn -B package --file ./gateway/pom.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4-beta
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 3.4 Build ms application with Maven
         run: mvn -B package --file ./application/pom.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4-beta
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 3.5 Build ms conveyor with Maven
         run: mvn -B package --file ./conveyor/pom.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4-beta
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
