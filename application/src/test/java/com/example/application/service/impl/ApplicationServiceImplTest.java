@@ -1,9 +1,7 @@
 package com.example.application.service.impl;
 
-import com.example.application.model.LoanOfferDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -17,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -31,14 +28,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class ApplicationServiceImplTest {
 
-    private static WireMockServer wireMockServer;
-
     @Autowired
     private MockMvc mockMvc;
 
     @BeforeAll
     static void init() {
-        wireMockServer = new WireMockServer(
+        WireMockServer wireMockServer = new WireMockServer(
                 new WireMockConfiguration().port(8081));
         wireMockServer.start();
         WireMock.configureFor("localhost", 8081);
