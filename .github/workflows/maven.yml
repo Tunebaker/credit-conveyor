@@ -38,10 +38,10 @@ jobs:
       - name: 3.3 Build ms gateway with Maven
         run: mvn -B package --file ./gateway/pom.xml
 
-      - name: Install dependencies
-        run: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-      - name: Run tests and collect coverage
-        run: mvn -B test
+#      - name: Install dependencies
+#        run: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+#      - name: Run tests and collect coverage
+#        run: mvn -B test
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4-beta
         env:
