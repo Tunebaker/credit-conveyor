@@ -171,7 +171,7 @@ class DealServiceImplTest {
         ClientEntity client = ClientEntity.builder().build();
         when(applicationRepository.findById(any())).thenReturn(Optional.ofNullable(applicationEntity));
         when(clientRepository.findById(any())).thenReturn(Optional.of(client));
-        when(feignConveyorService.calculateCredit(any())).thenThrow(RuntimeException.class);
+        when(feignConveyorService.calculateCredit(any())).thenThrow(ScoringException.class);
 
         assertThrows(ScoringException.class, () -> dealService.calculateCredit(requestDTO, 10L));
 

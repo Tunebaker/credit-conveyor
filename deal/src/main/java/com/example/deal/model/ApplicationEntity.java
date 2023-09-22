@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum;
 
 @Data
 @NoArgsConstructor
@@ -30,7 +31,7 @@ public class ApplicationEntity {
     private Long clientId;
     private Long creditId;
     @Enumerated(EnumType.STRING)
-    private ApplicationStatusHistoryDTO.StatusEnum status;
+    private StatusEnum status;
     private LocalDateTime creationDate;
     @Type(type = "io.hypersistence.utils.hibernate.type.json.JsonBinaryType")
     private LoanOfferDTO appliedOffer;

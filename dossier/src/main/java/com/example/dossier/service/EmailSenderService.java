@@ -19,6 +19,12 @@ public class EmailSenderService {
         message.setSubject(emailMessage.getTheme().toString());
         message.setText(text);
         log.info("отправляется e-mail сообщение {}", message);
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+            log.info("Сообщение email отправлено");
+        } catch (Exception e) {
+            log.error("Ошибка отправки email сообщения: {}", e.getMessage());
+
+        }
     }
 }
