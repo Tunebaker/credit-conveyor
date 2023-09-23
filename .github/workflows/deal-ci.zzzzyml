@@ -1,4 +1,4 @@
-name: Java Credit Conveyor CI with Maven
+name: Deal CI
 
 on:
   # ручной запуск по кнопке
