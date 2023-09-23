@@ -41,6 +41,7 @@ import static com.example.deal.model.Theme.FINISH_REGISTRATION;
 @Service
 public class DealServiceImpl implements DealService {
 
+    private static final String APP_SAVED_MSG = "Заявка сохранена в БД";
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
     private final CreditRepository creditRepository;
@@ -60,7 +61,8 @@ public class DealServiceImpl implements DealService {
         ApplicationStatusUpdater.updateStatus(application, PREAPPROVAL);
 
         applicationRepository.save(application);
-        log.info("Заявка сохранена в БД: {}", application);
+
+        log.info(APP_SAVED_MSG + ": {}", application);
 
         log.info("Запрос для расчета возможных условий кредита отправляется в МС Конвейер");
         List<LoanOfferDTO> loanOfferDtos = feignConveyorService.getLoanOfferDtos(loanApplicationRequestDTO);
@@ -78,7 +80,7 @@ public class DealServiceImpl implements DealService {
 
         application.setAppliedOffer(loanOfferDTO);
         applicationRepository.save(application);
-        log.info("Заявка сохранена в БД: {}", application);
+        log.info(APP_SAVED_MSG + ": {}", application);
 
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
         EmailMessage message = createEmailMessage(client.getEmail(), FINISH_REGISTRATION, application.getApplicationId());
@@ -104,7 +106,7 @@ public class DealServiceImpl implements DealService {
         try {
             creditDTO = feignConveyorService.calculateCredit(scoringDataDTO);
         } catch (ScoringException e) {
-            log.warn("В выдаче кредита отказано по причине(-ам): " + e.getMessage() );
+            log.warn("В выдаче кредита отказано по причине(-ам): " + e.getMessage());
 
             EmailMessage message = createEmailMessage(client.getEmail(), APPLICATION_DENIED, applicationId);
             documentService.sendApplicationDeniedRequest(message);
@@ -126,7 +128,7 @@ public class DealServiceImpl implements DealService {
         application.setCreditId(savedCredit.getCreditId());
         application.setCreationDate(LocalDateTime.now());
         applicationRepository.save(ApplicationStatusUpdater.updateStatus(application, CC_APPROVED));
-        log.info("Заявка сохранена в БД: {}", application);
+        log.info(APP_SAVED_MSG + ": {}", application);
 
         ClientEntity updatedClient = ClientMapper.INSTANCE.finishRegistrationRequestUpdateFields(client,
                 finishRegistrationRequestDTO);
@@ -139,7 +141,7 @@ public class DealServiceImpl implements DealService {
 
     }
 
-    private EmailMessage createEmailMessage(String address, Theme theme, Long applicationId){
+    private EmailMessage createEmailMessage(String address, Theme theme, Long applicationId) {
         return EmailMessage.builder()
                 .address(address)
                 .theme(theme)
