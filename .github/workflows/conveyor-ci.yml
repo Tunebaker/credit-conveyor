@@ -1,16 +1,16 @@
-name: conveyor CI
+name: Conveyor CI
 
 on:
   # ручной запуск по кнопке
   workflow_dispatch:
   # запуск при пуше и ПР в указанные ветки
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - develop
-      - master
+#  push:
+#    branches:
+#      - master
+#  pull_request:
+#    branches:
+#      - develop
+#      - master
 
 jobs:
   build:

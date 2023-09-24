@@ -1,16 +1,16 @@
-name: Dossier CI
+name: Application CI
 
 on:
   # ручной запуск по кнопке
   workflow_dispatch:
   # запуск при пуше и ПР в указанные ветки
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - develop
-      - master
+#  push:
+#    branches:
+#      - master
+#  pull_request:
+#    branches:
+#      - develop
+#      - master
 
 jobs:
   build:
@@ -31,8 +31,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: 3.2 Build ms dossier with Maven
-        run: mvn -B package --file ./dossier/pom.xml
+
+      - name: 3.4 Build ms application with Maven
+        run: mvn -B package --file ./application/pom.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4-beta
         env:
@@ -54,6 +55,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify --file ./dossier/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Tunebaker_credit-conveyor
-
+        run: mvn -B verify --file ./application/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Tunebaker_credit-conveyor
 

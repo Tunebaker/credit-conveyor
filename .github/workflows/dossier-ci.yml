@@ -1,4 +1,4 @@
-name: Deal CI
+name: Dossier CI
 
 on:
   # ручной запуск по кнопке
@@ -31,8 +31,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: 3.1 Build ms deal with Maven
-        run: mvn -B package --file ./deal/pom.xml
+      - name: 3.2 Build ms dossier with Maven
+        run: mvn -B package --file ./dossier/pom.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4-beta
         env:
@@ -54,4 +54,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify --file ./deal/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Tunebaker_credit-conveyor
+        run: mvn -B verify --file ./dossier/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Tunebaker_credit-conveyor
+
+
