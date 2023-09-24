@@ -32,7 +32,7 @@ public class ScoringServiceImpl implements ScoringService {
         if (!loanApplicationRequestDTO.getLastName().matches(NAMES_PATTERN)) {
             validationErrors.put("Фамилия", "должна содержать от 2 до 30 латинских букв");
         }
-        if (loanApplicationRequestDTO.getMiddleName().length() != 0 & !(loanApplicationRequestDTO.getMiddleName().matches(NAMES_PATTERN))) {
+        if (loanApplicationRequestDTO.getMiddleName().length() != 0 && !(loanApplicationRequestDTO.getMiddleName().matches(NAMES_PATTERN))) {
             validationErrors.put("Отчество", "при наличии должно содержать от 2 до 30 латинских букв");
         }
         if ((loanApplicationRequestDTO.getAmount().compareTo(MINIMAL_AMOUNT)) < 0) {

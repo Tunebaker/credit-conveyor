@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.EMPLOYED;
+import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.UNEMPLOYED;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ScoringServiceImplTest {
@@ -68,6 +69,37 @@ class ScoringServiceImplTest {
                 .build();
         Map<String, String> scoringDataValid = scoringServiceImpl.score(scoringDataDTO);
         assertEquals(0, scoringDataValid.size());
+    }
 
+    @Test
+    void scoreWithBadParameters(){
+        ScoringDataDTO scoringDataDTO = ScoringDataDTO.builder()
+                .birthdate(LocalDate.parse("2023-02-02"))
+                .amount(BigDecimal.valueOf(120000))
+                .employment(EmploymentDTO.builder()
+                        .employmentStatus(UNEMPLOYED)
+                        .workExperienceCurrent(2)
+                        .workExperienceTotal(11)
+                        .salary(new BigDecimal(1000))
+                        .build())
+                .build();
+        Map<String, String> scoringDataValid = scoringServiceImpl.score(scoringDataDTO);
+        assertEquals(5, scoringDataValid.size());
+    }
+
+    @Test
+    void scoreWithTooOldClient(){
+        ScoringDataDTO scoringDataDTO = ScoringDataDTO.builder()
+                .birthdate(LocalDate.parse("1940-02-02"))
+                .amount(BigDecimal.valueOf(120000))
+                .employment(EmploymentDTO.builder()
+                        .employmentStatus(EMPLOYED)
+                        .workExperienceCurrent(21)
+                        .workExperienceTotal(111)
+                        .salary(new BigDecimal(10000))
+                        .build())
+                .build();
+        Map<String, String> scoringDataValid = scoringServiceImpl.score(scoringDataDTO);
+        assertEquals(1, scoringDataValid.size());
     }
 }
