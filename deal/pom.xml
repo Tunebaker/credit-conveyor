@@ -20,6 +20,9 @@
 		<java.version>11</java.version>
 		<org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
 		<version.mapstruct-lombok>0.2.0</version.mapstruct-lombok>
+
+		<sonar.organization>tunebaker</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>
