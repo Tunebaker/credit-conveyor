@@ -125,6 +125,6 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     private Integer getRandomSesCode() {
-        return random.nextInt(9000) + 1000;
+        return new SecureRandom().nextInt(9000) + 1000;
     }
 }
