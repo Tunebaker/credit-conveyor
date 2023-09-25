@@ -13,13 +13,11 @@ import com.example.deal.repository.CreditRepository;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.KafkaService;
 import com.example.deal.util.ApplicationStatusUpdater;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.util.Random;
 
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CREDIT_ISSUED;
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.DOCUMENT_SIGNED;
