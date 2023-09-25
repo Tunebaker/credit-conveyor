@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.CREDIT_ISSUED;
@@ -123,6 +124,6 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     private Integer getRandomSesCode() {
-        return new Random().nextInt(9000) + 1000;
+        return new SecureRandom().nextInt(9000) + 1000;
     }
 }
