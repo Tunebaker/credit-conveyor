@@ -3,6 +3,7 @@ package com.example.dossier.service;
 import com.example.dossier.model.EmailMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -22,9 +23,9 @@ public class EmailSenderService {
         try {
             mailSender.send(message);
             log.info("Сообщение email отправлено");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Ошибка отправки email сообщения: {}", e.getMessage());
-
+            throw new RuntimeException(e);
         }
     }
 }
