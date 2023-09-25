@@ -28,21 +28,24 @@ import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREP
 @RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
 
+    private static final String MESSAGE_SENT_MSG = "Сообщение отправлено в KafkaService: {}";
+    private final Random random = new Random();
     private final KafkaService kafkaService;
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
-    private  final CreditRepository creditRepository;
+    private final CreditRepository creditRepository;
 
     @Override
     public void sendFinishRegistrationRequest(EmailMessage message) {
         kafkaService.sendFinishRegistrationRequest(message);
-        log.info("Сообщение отправлено в KafkaService: {}", message);
+
+        log.info(MESSAGE_SENT_MSG, message);
     }
 
     @Override
     public void sendCreateDocumentRequest(EmailMessage message) {
         kafkaService.sendCreateDocumentRequest(message);
-        log.info("Сообщение отправлено в KafkaService: {}", message);
+        log.info(MESSAGE_SENT_MSG, message);
     }
 
     @Override
@@ -58,7 +61,7 @@ public class DocumentServiceImpl implements DocumentService {
         EmailMessage message = createEmailMessage(Theme.SEND_DOCUMENTS, applicationId, client);
 
         kafkaService.sendSendDocumentRequest(message);
-        log.info("Сообщение отправлено в KafkaService: {}", message);
+        log.info(MESSAGE_SENT_MSG, message);
     }
 
     @Override
@@ -76,7 +79,7 @@ public class DocumentServiceImpl implements DocumentService {
         EmailMessage message = createEmailMessage(Theme.SEND_SES, applicationId, client);
 
         kafkaService.sendSignDocumentRequest(message);
-        log.info("Сообщение отправлено в KafkaService: {}", message);
+        log.info(MESSAGE_SENT_MSG, message);
     }
 
     @Override
@@ -104,13 +107,13 @@ public class DocumentServiceImpl implements DocumentService {
         ClientEntity client = clientRepository.findById(application.getClientId()).orElseThrow();
         EmailMessage message = createEmailMessage(Theme.CREDIT_ISSUED, applicationId, client);
         kafkaService.sendCreditIssueRequest(message);
-        log.info("Сообщение отправлено в KafkaService: {}", message);
+        log.info(MESSAGE_SENT_MSG, message);
     }
 
     @Override
     public void sendApplicationDeniedRequest(EmailMessage message) {
         kafkaService.sendApplicationDeniedRequest(message);
-        log.info("Сообщение отправлено в KafkaService: {}", message);
+        log.info(MESSAGE_SENT_MSG, message);
     }
 
     private EmailMessage createEmailMessage(Theme theme, Long applicationId, ClientEntity client) {
