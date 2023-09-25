@@ -1,6 +1,11 @@
 package com.example.conveyor.service;
 
-import com.example.conveyor.model.*;
+import com.example.conveyor.exception.ScoringException;
+import com.example.conveyor.model.CreditDTO;
+import com.example.conveyor.model.EmploymentDTO;
+import com.example.conveyor.model.LoanApplicationRequestDTO;
+import com.example.conveyor.model.LoanOfferDTO;
+import com.example.conveyor.model.ScoringDataDTO;
 import com.example.conveyor.service.impl.ConveyorServiceImpl;
 import com.example.conveyor.service.impl.ScoringServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -13,12 +18,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.conveyor.model.EmploymentDTO.EmploymentStatusEnum.EMPLOYED;
 import static com.example.conveyor.model.EmploymentDTO.PositionEnum.TOP_MANAGER;
 import static com.example.conveyor.model.ScoringDataDTO.GenderEnum.MALE;
 import static com.example.conveyor.model.ScoringDataDTO.MaritalStatusEnum.SINGLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -73,5 +80,14 @@ class ConveyorServiceImplTest {
         CreditDTO creditDTO = conveyorServiceImpl.composeCreditDTO(scoringDataDTO);
         assertEquals(12, creditDTO.getPaymentSchedule().size());
         assertTrue(creditDTO.getIsInsuranceEnabled());
+    }
+
+    @Test
+    void composeCreditDTOWithBadParameters() {
+        ScoringDataDTO scoringDataDTO = ScoringDataDTO.builder()
+                .build();
+        when(scoringServiceImpl.score(any(ScoringDataDTO.class))).thenReturn(Map.of("возраст", "менее 20 лет"));
+
+        assertThrows(ScoringException.class, () -> conveyorServiceImpl.composeCreditDTO(scoringDataDTO));
     }
 }
