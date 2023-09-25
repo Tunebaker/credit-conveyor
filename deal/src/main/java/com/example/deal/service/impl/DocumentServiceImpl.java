@@ -29,7 +29,7 @@ import static com.example.deal.model.ApplicationStatusHistoryDTO.StatusEnum.PREP
 public class DocumentServiceImpl implements DocumentService {
 
     private static final String MESSAGE_SENT_MSG = "Сообщение отправлено в KafkaService: {}";
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
     private final KafkaService kafkaService;
     private final ApplicationRepository applicationRepository;
     private final ClientRepository clientRepository;
@@ -125,6 +125,6 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     private Integer getRandomSesCode() {
-        return new SecureRandom().nextInt(9000) + 1000;
+        return random.nextInt(9000) + 1000;
     }
 }
